@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.wordpress</groupId>
+  <artifactId>volley</artifactId>
+  <versioning>
+    <release>wp</release>
+    <versions>
+      <version>wp</version>
+    </versions>
+    <lastUpdated>20130911043329</lastUpdated>
+  </versioning>
+</metadata>
