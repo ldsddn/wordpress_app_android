@@ -3,10 +3,11 @@
   <groupId>org.wordpress</groupId>
   <artifactId>volley</artifactId>
   <versioning>
-    <release>wp</release>
+    <release>wp-0.0.1</release>
     <versions>
       <version>wp</version>
+      <version>wp-0.0.1</version>
     </versions>
-    <lastUpdated>20130911043329</lastUpdated>
+    <lastUpdated>20130913194117</lastUpdated>
   </versioning>
 </metadata>
