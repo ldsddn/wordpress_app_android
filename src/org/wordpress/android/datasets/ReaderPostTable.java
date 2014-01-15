@@ -285,7 +285,10 @@ public class ReaderPostTable {
         String[] args = {Long.toString(blogId)};
         ReaderDatabase.getWritableDb().execSQL(sql, args);
     }
-    
+
+    public static void addOrUpdatePosts(ReaderPostList posts) {
+        addOrUpdatePosts(null, posts);
+    }
     public static void addOrUpdatePosts(final String tagName, ReaderPostList posts) {
         if (posts==null || posts.size()==0)
             return;
@@ -350,6 +353,29 @@ public class ReaderPostTable {
             db.endTransaction();
             SqlUtils.closeStatement(stmtPosts);
             SqlUtils.closeStatement(stmtTags);
+        }
+    }
+
+    public static ReaderPostList getPostsInBlog(long blogId, int maxPosts) {
+        String sql = "SELECT * FROM tbl_posts WHERE blog_id = ? ORDER BY tbl_posts.timestamp DESC";
+
+        if (maxPosts > 0)
+            sql += " LIMIT " + Integer.toString(maxPosts);
+
+        Cursor cursor = ReaderDatabase.getReadableDb().rawQuery(sql, new String[]{Long.toString(blogId)});
+        try {
+            ReaderPostList posts = new ReaderPostList();
+            if (cursor==null || !cursor.moveToFirst())
+                return posts;
+
+            resetColumnIndexes(cursor);
+            do {
+                posts.add(getPostFromCursor(cursor));
+            } while (cursor.moveToNext());
+
+            return posts;
+        } finally {
+            SqlUtils.closeCursor(cursor);
         }
     }
 

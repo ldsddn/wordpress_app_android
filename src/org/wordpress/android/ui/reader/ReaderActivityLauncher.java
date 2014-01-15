@@ -67,6 +67,12 @@ public class ReaderActivityLauncher {
         activity.startActivityForResult(intent, Constants.INTENT_READER_REBLOG);
     }
 
+    public static void showReaderBlogDetailForResult(Activity activity, long blogId) {
+        Intent intent = new Intent(activity, ReaderBlogDetailActivity.class);
+        intent.putExtra(ReaderBlogDetailActivity.ARG_BLOG_ID, blogId);
+        activity.startActivityForResult(intent, Constants.INTENT_READER_BLOG_DETAIL);
+    }
+
     public static enum OpenUrlType { INTERNAL, EXTERNAL }
     public static void openUrl(Context context, String url) {
         openUrl(context, url, OpenUrlType.INTERNAL);

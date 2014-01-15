@@ -489,4 +489,44 @@ public class ReaderPostActions {
             }
         }.start();
     }
+
+    public static void requestPostsForBlog(final long blogId, final ReaderActions.ActionListener actionListener){
+        String path = "sites/" + blogId + "/posts/" + "/?meta=site";
+        com.wordpress.rest.RestRequest.Listener listener = new RestRequest.Listener() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                handleGetPostsResponse(blogId, jsonObject, actionListener);
+            }
+        };
+        RestRequest.ErrorListener errorListener = new RestRequest.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                AppLog.e(T.READER, volleyError);
+                if (actionListener != null)
+                    actionListener.onActionResult(false);
+
+            }
+        };
+        AppLog.d(T.READER, "updating posts in blog " + blogId);
+        WordPress.restClient.get(path, null, null, listener, errorListener);
+    }
+
+    private static void handleGetPostsResponse(long blogId, JSONObject jsonObject, final ReaderActions.ActionListener actionListener) {
+        if (jsonObject==null) {
+            if (actionListener != null)
+                actionListener.onActionResult(false);
+            return;
+        }
+
+        ReaderPostList posts = ReaderPostList.fromJson(jsonObject);
+
+        // response doesn't include the blogId (site_ID) so we must assign it here
+        for (ReaderPost post: posts)
+            post.blogId = blogId;
+        ReaderPostTable.addOrUpdatePosts(posts);
+
+        if (actionListener != null) {
+            actionListener.onActionResult(posts.size() > 0 ? true : false);
+        }
+    }
 }

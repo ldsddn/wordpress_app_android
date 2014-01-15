@@ -2,6 +2,7 @@ package org.wordpress.android.ui.reader.adapters;
 
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -22,6 +23,7 @@ import org.wordpress.android.WordPress;
 import org.wordpress.android.datasets.ReaderPostTable;
 import org.wordpress.android.models.ReaderPost;
 import org.wordpress.android.models.ReaderPostList;
+import org.wordpress.android.ui.reader.ReaderActivityLauncher;
 import org.wordpress.android.ui.reader.actions.ReaderActions;
 import org.wordpress.android.ui.reader.actions.ReaderPostActions;
 import org.wordpress.android.util.AniUtils;
@@ -261,6 +263,15 @@ public class ReaderPostAdapter extends BaseAdapter {
         } else {
             holder.imgAvatar.showDefaultImage(WPNetworkImageView.ImageType.AVATAR, false);
         }
+
+        holder.imgAvatar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Context context = holder.imgAvatar.getContext();
+                if (context instanceof Activity)
+                    ReaderActivityLauncher.showReaderBlogDetailForResult((Activity)context, post.blogId);
+            }
+        });
 
         /*final String firstTag = post.getFirstTag();
         if (!TextUtils.isEmpty(firstTag)) {

@@ -41,5 +41,6 @@ public class Constants {
     public static final int INTENT_READER_POST_DETAIL = 1000;
     public static final int INTENT_READER_TAGS        = 1001;
     public static final int INTENT_READER_REBLOG      = 1002;
+    public static final int INTENT_READER_BLOG_DETAIL = 1003;
 
 }
