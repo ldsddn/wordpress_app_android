@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wordpress.android.WordPress;
 import org.wordpress.android.datasets.ReaderBlogTable;
+import org.wordpress.android.models.ReaderBlog;
 import org.wordpress.android.models.ReaderUrlList;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.AppLog.T;
@@ -105,6 +106,38 @@ public class ReaderBlogActions {
                 ReaderBlogTable.setFollowedBlogUrls(urls);
             }
         }.start();
+    }
+
+    /*
+     * requests info about a specific blog
+     */
+    public static void updateBlog(final long blogId, final ReaderActions.ActionListener actionListener) {
+        RestRequest.Listener listener = new RestRequest.Listener() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                handleUpdateBlogResponse(jsonObject, actionListener);
+            }
+        };
+        RestRequest.ErrorListener errorListener = new RestRequest.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                AppLog.e(T.READER, volleyError);
+                if (actionListener != null)
+                    actionListener.onActionResult(false);
+            }
+        };
+        WordPress.restClient.get("/sites/" + blogId, listener, errorListener);
+    }
+    private static void handleUpdateBlogResponse(JSONObject jsonObject, ReaderActions.ActionListener actionListener) {
+        if (jsonObject == null) {
+            if (actionListener != null)
+                actionListener.onActionResult(false);
+            return;
+        }
+
+        ReaderBlogTable.addOrUpdateBlog(ReaderBlog.fromJson(jsonObject));
+        if (actionListener != null)
+            actionListener.onActionResult(true);
     }
 
 }

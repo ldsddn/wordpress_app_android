@@ -3,15 +3,22 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/reader_background">
+
+    <include
+        android:id="@+id/layout_blog_header"
+        layout="@layout/reader_blog_header" />
 
     <ListView
         android:id="@android:id/list"
         style="@style/ReaderListView"
-        android:paddingLeft="@dimen/reader_list_margin"
-        android:paddingRight="@dimen/reader_list_margin"
+        android:layout_marginTop="@dimen/margin_small"
+        android:layout_below="@+id/layout_blog_header"
         android:divider="@color/reader_divider_grey"
         android:dividerHeight="@dimen/margin_large"
+        android:paddingLeft="@dimen/reader_list_margin"
+        android:paddingRight="@dimen/reader_list_margin"
         tools:listitem="@layout/reader_listitem_post_excerpt" />
 
     <org.wordpress.android.widgets.WPTextView
@@ -27,9 +34,9 @@
     <ProgressBar
         android:id="@+id/progress_footer"
         style="@style/ReaderProgressBar"
-        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginLeft="@dimen/margin_large" />
+        android:layout_marginLeft="@dimen/margin_large"
+        android:visibility="gone" />
 </RelativeLayout>

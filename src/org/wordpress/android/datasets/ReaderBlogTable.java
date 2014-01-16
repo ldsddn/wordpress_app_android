@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.text.TextUtils;
 
+import org.wordpress.android.models.ReaderBlog;
+import org.wordpress.android.models.ReaderBlogList;
 import org.wordpress.android.models.ReaderUrlList;
 import org.wordpress.android.util.SqlUtils;
 import org.wordpress.android.util.UrlUtils;
@@ -17,14 +19,89 @@ import java.util.Iterator;
  */
 public class ReaderBlogTable {
     protected static void createTables(SQLiteDatabase db) {
+        // blogs
+        db.execSQL("CREATE TABLE tbl_blogs ("
+                 + "    blog_id       INTEGER DEFAULT 0,"
+                 + "    name          TEXT,"
+                 + "    description   TEXT,"
+                 + "    url           TEXT,"
+                 + "    is_private    INTEGER DEFAULT 0,"
+                 + "    is_jetpack    INTEGER DEFAULT 0,"
+                 + "    num_followers INTEGER DEFAULT 0,"
+                 + " PRIMARY KEY (blog_id)"
+                 + ")");
+
+        // followed blog urls
         db.execSQL("CREATE TABLE tbl_blog_urls ("
                 + "	blog_url        TEXT COLLATE NOCASE PRIMARY KEY,"
                 + " is_followed     INTEGER DEFAULT 0)");
     }
 
     protected static void dropTables(SQLiteDatabase db) {
+        db.execSQL("DROP TABLE IF EXISTS tbl_blogs");
         db.execSQL("DROP TABLE IF EXISTS tbl_blog_urls");
     }
+
+    public static void addOrUpdateBlog(ReaderBlog blog) {
+        if (blog == null)
+            return;
+        ReaderBlogList blogs = new ReaderBlogList();
+        blogs.add(blog);
+        addOrUpdateBlogs(blogs);
+    }
+
+    public static void addOrUpdateBlogs(ReaderBlogList blogs) {
+        if (blogs==null || blogs.size()==0)
+            return;
+
+        String sql = "INSERT OR REPLACE INTO tbl_blogs"
+                + "   (blog_id, name, description, url, is_private, is_jetpack, num_followers)"
+                + "   VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)";
+        SQLiteDatabase db = ReaderDatabase.getWritableDb();
+        db.beginTransaction();
+        SQLiteStatement stmt = db.compileStatement(sql);
+        try {
+            for (ReaderBlog blog: blogs) {
+                stmt.bindLong  (1, blog.blogId);
+                stmt.bindString(2, blog.getName());
+                stmt.bindString(3, blog.getDescription());
+                stmt.bindString(4, blog.getUrl());
+                stmt.bindLong  (5, SqlUtils.boolToSql(blog.isPrivate));
+                stmt.bindLong  (6, SqlUtils.boolToSql(blog.isJetpack));
+                stmt.bindLong  (7, blog.numSubscribers);
+                stmt.execute();
+                stmt.clearBindings();
+            }
+
+            db.setTransactionSuccessful();
+
+        } finally {
+            db.endTransaction();
+            SqlUtils.closeStatement(stmt);
+        }
+    }
+     public static ReaderBlog getBlog(long blogId) {
+         String args[] = {Long.toString(blogId)};
+         String sql = "SELECT blog_id, name, description, url, is_private, is_jetpack, num_followers FROM tbl_blogs WHERE blog_id=?";
+         Cursor c = ReaderDatabase.getReadableDb().rawQuery(sql, args);
+         try {
+             if (!c.moveToFirst())
+                 return null;
+
+             ReaderBlog blog = new ReaderBlog();
+             blog.blogId = c.getLong(0);
+             blog.setName(c.getString(1));
+             blog.setDescription(c.getString(2));
+             blog.setUrl(c.getString(3));
+             blog.isPrivate = SqlUtils.sqlToBool(c.getInt(4));
+             blog.isJetpack = SqlUtils.sqlToBool(c.getInt(5));
+             blog.numSubscribers = c.getInt(6);
+
+             return blog;
+         } finally {
+             SqlUtils.closeCursor(c);
+         }
+     }
 
     public static void setFollowedBlogUrls(ReaderUrlList urls) {
         SQLiteDatabase db = ReaderDatabase.getWritableDb();

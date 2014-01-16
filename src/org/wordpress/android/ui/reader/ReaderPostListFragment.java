@@ -26,20 +26,24 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import org.wordpress.android.Constants;
 import org.wordpress.android.R;
 import org.wordpress.android.WordPress;
+import org.wordpress.android.datasets.ReaderBlogTable;
 import org.wordpress.android.datasets.ReaderPostTable;
 import org.wordpress.android.datasets.ReaderTagTable;
+import org.wordpress.android.models.ReaderBlog;
 import org.wordpress.android.models.ReaderPost;
 import org.wordpress.android.models.ReaderTag;
 import org.wordpress.android.ui.WPActionBarActivity;
 import org.wordpress.android.ui.prefs.UserPrefs;
 import org.wordpress.android.ui.reader.ReaderActivity.PostListType;
 import org.wordpress.android.ui.reader.actions.ReaderActions;
+import org.wordpress.android.ui.reader.actions.ReaderBlogActions;
 import org.wordpress.android.ui.reader.actions.ReaderPostActions;
 import org.wordpress.android.ui.reader.adapters.ReaderActionBarTagAdapter;
 import org.wordpress.android.ui.reader.adapters.ReaderPostAdapter;
 import org.wordpress.android.util.AniUtils;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.AppLog.T;
+import org.wordpress.android.util.FormatUtils;
 import org.wordpress.android.util.NetworkUtils;
 import org.wordpress.android.util.StringUtils;
 
@@ -54,9 +58,9 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     private TextView mNewPostsBar;
     private View mEmptyView;
     private ProgressBar mProgress;
+    private ViewGroup mBlogHeader;
 
     private String mCurrentTag;
-    private long mBlogId;
     private PostListType mListType;
     private long mListTypeId;
 
@@ -201,6 +205,27 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         });
 
         listView.setAdapter(getPostAdapter());
+
+        // layout that appears at top when viewing posts in a specific blog - hidden until
+        // blog info is requested
+        mBlogHeader = (ViewGroup) view.findViewById(R.id.layout_blog_header);
+        mBlogHeader.setVisibility(View.GONE);
+
+        if (mListType == PostListType.BLOG) {
+            final long blogId = mListTypeId;
+
+            // show existing info for this blog (handles null)
+            showBlogInfo(ReaderBlogTable.getBlog(blogId));
+
+            // then request latest info for this blog
+            ReaderBlogActions.updateBlog(blogId, new ReaderActions.ActionListener() {
+                @Override
+                public void onActionResult(boolean succeeded) {
+                    if (succeeded && hasActivity())
+                        showBlogInfo(ReaderBlogTable.getBlog(blogId));
+                }
+            });
+        }
 
         return view;
     }
@@ -432,7 +457,7 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     protected void updatePostsInCurrentBlog(RefreshType refreshType) {
         final ReaderActions.RequestDataAction updateAction = ReaderActions.RequestDataAction.LOAD_NEWER;
         setIsUpdating(true, updateAction);
-        ReaderPostActions.requestPostsForBlog(mBlogId, new ReaderActions.ActionListener() {
+        ReaderPostActions.requestPostsForBlog(mListTypeId, new ReaderActions.ActionListener() {
             @Override
             public void onActionResult(boolean succeeded) {
                 if (!hasActivity()) {
@@ -644,11 +669,13 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
 
                 actionBar.setListNavigationCallbacks(getActionBarAdapter(), navigationListener);
                 break;
+
             case BLOG:
                 actionBar.setDisplayShowTitleEnabled(true);
                 actionBar.setDisplayHomeAsUpEnabled(true);
                 actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
                 break;
+
             default:
                 break;
         }
@@ -671,6 +698,10 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
             mActionBarAdapter = new ReaderActionBarTagAdapter(getActivity(), isStaticMenuDrawer, dataListener);
         }
         return mActionBarAdapter;
+    }
+
+    private boolean hasActionBarAdapter() {
+        return (mActionBarAdapter != null);
     }
 
     /*
@@ -726,5 +757,48 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
         // nop
+    }
+
+    /*
+     * show blog header with info from passed blog filled in
+     */
+    private void showBlogInfo(ReaderBlog blog) {
+        if (blog == null)
+            return;
+
+        final TextView txtBlogName = (TextView) mBlogHeader.findViewById(R.id.text_blog_name);
+        final TextView txtDescription = (TextView) mBlogHeader.findViewById(R.id.text_blog_description);
+        final TextView txtFollowBtn = (TextView) mBlogHeader.findViewById(R.id.text_follow_blog);
+        final TextView txtFollowCnt = (TextView) mBlogHeader.findViewById(R.id.text_follow_count);
+
+        txtBlogName.setText(blog.getName());
+        txtDescription.setText(blog.getDescription());
+        txtDescription.setVisibility(blog.hasDescription() ? View.VISIBLE : View.GONE);
+        String numFollowers = getResources().getString(R.string.reader_label_followers, FormatUtils.formatInt(blog.numSubscribers));
+        txtFollowCnt.setText(numFollowers);
+
+        boolean isFollowing = ReaderBlogTable.isFollowedBlogUrl(blog.getUrl());
+        showFollowStatus(txtFollowBtn, isFollowing);
+
+        if (mBlogHeader.getVisibility() != View.VISIBLE)
+            AniUtils.flyIn(mBlogHeader);
+    }
+
+    /*
+     * updates the follow button in the blog header to match whether the current
+     * user is following this blog
+     */
+    private void showFollowStatus(TextView txtFollow, boolean isFollowed) {
+        if (isFollowed == txtFollow.isSelected())
+            return;
+
+        // text for follow button
+        String following = getString(R.string.reader_btn_unfollow).toUpperCase();
+        String follow = getString(R.string.reader_btn_follow).toUpperCase();
+
+        txtFollow.setSelected(isFollowed);
+        txtFollow.setText(isFollowed ? following : follow);
+        int drawableId = (isFollowed ? R.drawable.note_icon_following : R.drawable.note_icon_follow);
+        txtFollow.setCompoundDrawablesWithIntrinsicBounds(drawableId, 0, 0, 0);
     }
 }
