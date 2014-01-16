@@ -76,7 +76,7 @@ public class ReaderUserActions {
         UserPrefs.setCurrentUserId(user.userId);
     }
 
-    public static void requestRecommendedBlogs(final ReaderActions.RecommendedBlogsListener recommendedBlogsListener) {
+    public static void requestRecommendedBlogs(ArrayList<Long> viewedBlogIds, final ReaderActions.RecommendedBlogsListener recommendedBlogsListener) {
         com.wordpress.rest.RestRequest.Listener listener = new RestRequest.Listener() {
             @Override
             public void onResponse(JSONObject jsonObject) {
@@ -96,7 +96,12 @@ public class ReaderUserActions {
             }
         };
 
-        WordPress.restClient.get("read/recommendations/mine?source=mobile", listener, null);
+        String endpointUrl = "read/recommendations/mine?source=mobile&number=3";
+        for (long blogId : viewedBlogIds) {
+            endpointUrl += "&exclude[]=" + blogId;
+        }
+
+        WordPress.restClient.get(endpointUrl, listener, null);
     }
 
 }

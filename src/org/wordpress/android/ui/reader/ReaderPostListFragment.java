@@ -62,6 +62,11 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     private static final String LIST_STATE = "list_state";
     private Parcelable mListState = null;
 
+    private ListView mListView;
+
+    private int mShowNewRecommendedBlogsThreshold = 10;
+    private int mLastRecommendedBlogsPosition = 3;
+
     protected static enum RefreshType {AUTOMATIC, MANUAL};
 
     protected static ReaderPostListFragment newInstance(Context context) {
@@ -136,7 +141,7 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.reader_fragment_post_list, container, false);
-        final ListView listView = (ListView) view.findViewById(android.R.id.list);
+        mListView = (ListView) view.findViewById(android.R.id.list);
 
         // bar that appears at top when new posts are downloaded
         mNewPostsBar = (TextView) view.findViewById(R.id.text_new_posts);
@@ -157,20 +162,23 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         mProgress.setVisibility(View.GONE);
 
         // set the listView's scroll listeners so we can detect up/down scrolling
-        listView.setOnScrollListener(this);
+        mListView.setOnScrollListener(this);
 
         // tapping a post opens the detail view
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 // take header into account
-                position -= listView.getHeaderViewsCount();
+                position -= mListView.getHeaderViewsCount();
                 ReaderPost post = (ReaderPost) getPostAdapter().getItem(position);
                 ReaderActivityLauncher.showReaderPostDetailForResult(getActivity(), post);
             }
         });
 
-        listView.setAdapter(getPostAdapter());
+        mListView.setAdapter(getPostAdapter());
+
+        // Fire off a request to load the first recommended blog card
+        getPostAdapter().requestNewRecommendedBlogs(3);
 
         return view;
     }
@@ -629,6 +637,14 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
 
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-        // nop
+        // Sort out if we should load a new recommended blogs card
+        int lastVisiblePosition = mListView.getLastVisiblePosition();
+        if (lastVisiblePosition - mLastRecommendedBlogsPosition > mShowNewRecommendedBlogsThreshold) {
+            if (lastVisiblePosition + 5 < mListView.getCount()) {
+                getPostAdapter().requestNewRecommendedBlogs(lastVisiblePosition);
+                mLastRecommendedBlogsPosition = lastVisiblePosition;
+            }
+        }
+
     }
 }

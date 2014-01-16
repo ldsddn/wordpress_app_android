@@ -2,6 +2,7 @@ package org.wordpress.android.ui.reader.adapters;
 
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.NetworkImageView;
 
 import org.wordpress.android.Constants;
 import org.wordpress.android.R;
@@ -22,17 +24,25 @@ import org.wordpress.android.WordPress;
 import org.wordpress.android.datasets.ReaderPostTable;
 import org.wordpress.android.models.ReaderPost;
 import org.wordpress.android.models.ReaderPostList;
-import org.wordpress.android.ui.reader.ReaderActivity;
+import org.wordpress.android.models.RecommendedBlog;
+import org.wordpress.android.ui.reader.ReaderRecommendedBlogsView;
 import org.wordpress.android.ui.reader.actions.ReaderActions;
 import org.wordpress.android.ui.reader.actions.ReaderPostActions;
+import org.wordpress.android.ui.reader.actions.ReaderUserActions;
 import org.wordpress.android.util.AniUtils;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.AppLog.T;
 import org.wordpress.android.util.DateTimeUtils;
 import org.wordpress.android.util.DisplayUtils;
 import org.wordpress.android.util.FormatUtils;
+import org.wordpress.android.util.GravatarUtils;
 import org.wordpress.android.util.SysUtils;
 import org.wordpress.android.widgets.WPNetworkImageView;
+import org.wordpress.android.widgets.WPTextView;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by nbradbury on 6/27/13.
@@ -69,6 +79,9 @@ public class ReaderPostAdapter extends BaseAdapter {
     private static final int PRELOAD_OFFSET = 2;
 
     private Context mContext;
+
+    private Map<Integer, View> mRecommendedBlogsViews = new HashMap<Integer, View>();
+    private ArrayList<Long> mViewedRecommendedBlogIds = new ArrayList<Long>();
 
     public ReaderPostAdapter(Context context,
                              ReaderActions.RequestReblogListener reblogListener,
@@ -352,9 +365,10 @@ public class ReaderPostAdapter extends BaseAdapter {
                 preloadPostImages(position + PRELOAD_OFFSET);
         } else {
             // We're ready to show the recommended blogs view, get it from the activity
-            ReaderActivity activity = (ReaderActivity) mContext;
-            if (activity.getRecommendedBlogsView() != null)
-                convertView = activity.getRecommendedBlogsView();
+            if (mRecommendedBlogsViews.size() > 0) {
+                convertView = mRecommendedBlogsViews.get(position);
+            }
+
         }
 
         return convertView;
@@ -495,11 +509,6 @@ public class ReaderPostAdapter extends BaseAdapter {
             if (mPosts.isSameList(tmpPosts))
                 return false;
 
-            ReaderPost readerPost = new ReaderPost();
-            readerPost.isRecommendedBlog = true;
-            if (tmpPosts.size() >= 3)
-                tmpPosts.add(3, readerPost);
-
             // if we're not already displaying the max # posts, enable requesting more when
             // the user scrolls to the end of the list
             mCanRequestMorePosts = (ReaderPostTable.getNumPostsWithTag(mCurrentTag) < Constants.READER_MAX_POSTS_TO_DISPLAY);
@@ -592,4 +601,48 @@ public class ReaderPostAdapter extends BaseAdapter {
             AppLog.e(T.READER, volleyError);
         }
     };
+
+    /**
+     * Recommended blogs
+     */
+
+    /*
+     * Get a new Recommended Blogs card to add to the reader list
+     */
+    public void requestNewRecommendedBlogs(final int scrollPosition) {
+        // Get the blog Ids that we don't want to retrieve anymore.
+        ReaderUserActions.requestRecommendedBlogs(mViewedRecommendedBlogIds, new ReaderActions.RecommendedBlogsListener() {
+            @Override
+            public void onRecommendedBlogsResult(ArrayList<RecommendedBlog> recommendedBlogs) {
+                ReaderRecommendedBlogsView readerRecommendedBlogsView = (ReaderRecommendedBlogsView)((Activity)mContext).getLayoutInflater().inflate(R.layout.reader_listitem_recommended_blogs, null);
+                readerRecommendedBlogsView.setRecommendedBlogs(recommendedBlogs);
+                // Build the recommended blogs card view
+                for (int i = 0; i < recommendedBlogs.size(); i++) {
+                    RecommendedBlog recommendedBlog = recommendedBlogs.get(i);
+                    mViewedRecommendedBlogIds.add(recommendedBlog.getBlogId());
+                    View recommendedBlogView = ((Activity)mContext).getLayoutInflater().inflate(R.layout.reader_recommended_blog, null);
+                    recommendedBlogView.setTag(i);
+                    NetworkImageView gravatarImageView = (NetworkImageView) recommendedBlogView.findViewById(R.id.recommended_blog_gravatar);
+                    String blavatarUrl = GravatarUtils.resizedGravatarUrlForSize(recommendedBlog.getGravatarUrl(), DisplayUtils.dpToPx(mContext, 40));
+                    gravatarImageView.setImageUrl(blavatarUrl, WordPress.imageLoader);
+
+                    WPTextView titleTextView = (WPTextView) recommendedBlogView.findViewById(R.id.recommended_blog_title);
+                    titleTextView.setText(recommendedBlog.getBlogTitle());
+
+                    WPTextView reasonTextView = (WPTextView) recommendedBlogView.findViewById(R.id.recommended_blog_reason);
+                    reasonTextView.setText(recommendedBlog.getReason());
+
+                    readerRecommendedBlogsView.addView(recommendedBlogView);
+                }
+                // TODO Awesome logic for where to insert recommended card
+                ReaderPost readerPost = new ReaderPost();
+                readerPost.isRecommendedBlog = true;
+                if (mPosts.size() >= scrollPosition) {
+                    mPosts.add(scrollPosition, readerPost);
+                    mRecommendedBlogsViews.put(scrollPosition, readerRecommendedBlogsView);
+                    notifyDataSetChanged();
+                }
+            }
+        });
+    }
 }
