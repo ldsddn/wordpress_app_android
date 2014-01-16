@@ -51,6 +51,7 @@ public class ReaderPost {
     public boolean isExternal;
     public boolean isPrivate;
     public boolean isVideoPress;
+    public boolean isRecommendedBlog;
 
     public static ReaderPost fromJson(JSONObject json) {
         if (json==null)

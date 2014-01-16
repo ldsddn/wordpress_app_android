@@ -9,15 +9,24 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.NetworkImageView;
+import com.wordpress.rest.RestRequest;
 
+import org.json.JSONObject;
 import org.wordpress.android.Constants;
 import org.wordpress.android.R;
+import org.wordpress.android.WordPress;
 import org.wordpress.android.datasets.ReaderDatabase;
 import org.wordpress.android.datasets.ReaderPostTable;
 import org.wordpress.android.models.ReaderPost;
+import org.wordpress.android.models.RecommendedBlog;
 import org.wordpress.android.ui.WPActionBarActivity;
 import org.wordpress.android.ui.reader.ReaderPostListFragment.RefreshType;
 import org.wordpress.android.ui.reader.actions.ReaderActions;
@@ -27,8 +36,14 @@ import org.wordpress.android.ui.reader.actions.ReaderTagActions;
 import org.wordpress.android.ui.reader.actions.ReaderUserActions;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.AppLog.T;
+import org.wordpress.android.util.DisplayUtils;
+import org.wordpress.android.util.GravatarUtils;
+import org.wordpress.android.util.ImageUtils;
 import org.wordpress.android.util.NetworkUtils;
 import org.wordpress.android.util.ToastUtils;
+import org.wordpress.android.widgets.WPTextView;
+
+import java.util.ArrayList;
 
 /*
  * created by nbradbury
@@ -43,6 +58,7 @@ public class ReaderActivity extends WPActionBarActivity {
     private MenuItem mRefreshMenuItem;
     private boolean mHasPerformedInitialUpdate = false;
     private boolean mHasPerformedPurge = false;
+    private LinearLayout mRecommendedBlogsCardView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,6 +75,37 @@ public class ReaderActivity extends WPActionBarActivity {
             mHasPerformedInitialUpdate = savedInstanceState.getBoolean(KEY_INITIAL_UPDATE);
             mHasPerformedPurge = savedInstanceState.getBoolean(KEY_HAS_PURGED);
         }
+
+        mRecommendedBlogsCardView = (LinearLayout)getLayoutInflater().inflate(R.layout.reader_listitem_recommended_blogs, null);
+
+        ReaderUserActions.requestRecommendedBlogs(new ReaderActions.RecommendedBlogsListener() {
+            @Override
+            public void onRecommendedBlogsResult(ArrayList<RecommendedBlog> recommendedBlogs) {
+                // Build the recommended blogs card view
+                for (int i=0; i < recommendedBlogs.size(); i++ ) {
+                    RecommendedBlog recommendedBlog = recommendedBlogs.get(i);
+                    View recommendedBlogView = getLayoutInflater().inflate(R.layout.reader_recommended_blog, null);
+
+                    NetworkImageView gravatarImageView = (NetworkImageView) recommendedBlogView.findViewById(R.id.recommended_blog_gravatar);
+                    String blavatarUrl = GravatarUtils.resizedGravatarUrlForSize(recommendedBlog.getGravatarUrl(), DisplayUtils.dpToPx(ReaderActivity.this, 40));
+                    gravatarImageView.setImageUrl(blavatarUrl, WordPress.imageLoader);
+
+                    WPTextView titleTextView = (WPTextView) recommendedBlogView.findViewById(R.id.recommended_blog_title);
+                    titleTextView.setText(recommendedBlog.getBlogTitle());
+
+                    WPTextView reasonTextView = (WPTextView) recommendedBlogView.findViewById(R.id.recommended_blog_reason);
+                    reasonTextView.setText(recommendedBlog.getReason());
+
+                    mRecommendedBlogsCardView.addView(recommendedBlogView);
+
+                    // Remove divider from last row
+                    if (i == recommendedBlogs.size() - 1) {
+                        View dividerView = recommendedBlogView.findViewById(R.id.row_divider);
+                        dividerView.setVisibility(View.GONE);
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -278,4 +325,8 @@ public class ReaderActivity extends WPActionBarActivity {
             }
         }
     };
+
+    public View getRecommendedBlogsView() {
+        return mRecommendedBlogsCardView;
+    }
 }

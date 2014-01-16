@@ -41,4 +41,11 @@ public class GravatarUtils {
         return url + prefix + "d=mm";
     }
 
+    /*
+     * Replaces s=? parameter for a gravatar URL, if found
+     */
+    public static String resizedGravatarUrlForSize(String gravatarUrl, int size) {
+        return gravatarUrl.replaceAll("s=[^&]+","s=" + size);
+    }
+
 }

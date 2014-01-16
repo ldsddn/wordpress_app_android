@@ -22,6 +22,7 @@ import org.wordpress.android.WordPress;
 import org.wordpress.android.datasets.ReaderPostTable;
 import org.wordpress.android.models.ReaderPost;
 import org.wordpress.android.models.ReaderPostList;
+import org.wordpress.android.ui.reader.ReaderActivity;
 import org.wordpress.android.ui.reader.actions.ReaderActions;
 import org.wordpress.android.ui.reader.actions.ReaderPostActions;
 import org.wordpress.android.util.AniUtils;
@@ -38,6 +39,9 @@ import org.wordpress.android.widgets.WPNetworkImageView;
  * adapter for list of posts in a specific tag
  */
 public class ReaderPostAdapter extends BaseAdapter {
+    private static final int VIEW_TYPE_POST = 0;
+    private static final int VIEW_TYPE_RECOMMENDED_BLOG = 1;
+
     private String mCurrentTag;
 
     private int mPhotonWidth;
@@ -64,6 +68,8 @@ public class ReaderPostAdapter extends BaseAdapter {
     private int mLastPreloadPos = -1;
     private static final int PRELOAD_OFFSET = 2;
 
+    private Context mContext;
+
     public ReaderPostAdapter(Context context,
                              ReaderActions.RequestReblogListener reblogListener,
                              ReaderActions.DataLoadedListener dataLoadedListener,
@@ -71,7 +77,7 @@ public class ReaderPostAdapter extends BaseAdapter {
         super();
 
         mInflater = LayoutInflater.from(context);
-
+        mContext = context;
         mReblogListener = reblogListener;
         mDataLoadedListener = dataLoadedListener;
         mDataRequestedListener = dataRequestedListener;
@@ -192,6 +198,19 @@ public class ReaderPostAdapter extends BaseAdapter {
         return position;
     }
 
+    @Override public int getItemViewType(int position) {
+        ReaderPost post = (ReaderPost) getItem(position);
+        if (post.isRecommendedBlog)
+            return VIEW_TYPE_RECOMMENDED_BLOG;
+        else
+            return VIEW_TYPE_POST;
+    }
+
+    @Override
+    public int getViewTypeCount() {
+        return 2;
+    }
+
     @Override
     public boolean hasStableIds() {
         return false;
@@ -200,67 +219,67 @@ public class ReaderPostAdapter extends BaseAdapter {
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         final ReaderPost post = (ReaderPost) getItem(position);
-        final PostViewHolder holder;
+        if (getItemViewType(position) == VIEW_TYPE_POST) {
+            final PostViewHolder holder;
+            if (convertView == null) {
+                convertView = mInflater.inflate(R.layout.reader_listitem_post_excerpt, parent, false);
+                holder = new PostViewHolder();
 
-        if (convertView==null) {
-            convertView = mInflater.inflate(R.layout.reader_listitem_post_excerpt, parent, false);
-            holder = new PostViewHolder();
+                holder.txtTitle = (TextView) convertView.findViewById(R.id.text_title);
+                holder.txtText = (TextView) convertView.findViewById(R.id.text_excerpt);
+                holder.txtBlogName = (TextView) convertView.findViewById(R.id.text_blog_name);
+                holder.txtDate = (TextView) convertView.findViewById(R.id.text_date);
+                holder.txtFollow = (TextView) convertView.findViewById(R.id.text_follow);
 
-            holder.txtTitle = (TextView) convertView.findViewById(R.id.text_title);
-            holder.txtText = (TextView) convertView.findViewById(R.id.text_excerpt);
-            holder.txtBlogName = (TextView) convertView.findViewById(R.id.text_blog_name);
-            holder.txtDate = (TextView) convertView.findViewById(R.id.text_date);
-            holder.txtFollow = (TextView) convertView.findViewById(R.id.text_follow);
+                holder.txtCommentCount = (TextView) convertView.findViewById(R.id.text_comment_count);
+                holder.txtLikeCount = (TextView) convertView.findViewById(R.id.text_like_count);
 
-            holder.txtCommentCount = (TextView) convertView.findViewById(R.id.text_comment_count);
-            holder.txtLikeCount = (TextView) convertView.findViewById(R.id.text_like_count);
+                holder.imgFeatured = (WPNetworkImageView) convertView.findViewById(R.id.image_featured);
+                holder.imgAvatar = (WPNetworkImageView) convertView.findViewById(R.id.image_avatar);
 
-            holder.imgFeatured = (WPNetworkImageView) convertView.findViewById(R.id.image_featured);
-            holder.imgAvatar = (WPNetworkImageView) convertView.findViewById(R.id.image_avatar);
+                holder.imgBtnLike = (ImageView) convertView.findViewById(R.id.image_like_btn);
+                holder.imgBtnComment = (ImageView) convertView.findViewById(R.id.image_comment_btn);
+                holder.imgBtnReblog = (ImageView) convertView.findViewById(R.id.image_reblog_btn);
 
-            holder.imgBtnLike = (ImageView) convertView.findViewById(R.id.image_like_btn);
-            holder.imgBtnComment = (ImageView) convertView.findViewById(R.id.image_comment_btn);
-            holder.imgBtnReblog = (ImageView) convertView.findViewById(R.id.image_reblog_btn);
+                convertView.setTag(holder);
+            } else {
+                holder = (PostViewHolder) convertView.getTag();
+            }
 
-            convertView.setTag(holder);
-        } else {
-            holder = (PostViewHolder) convertView.getTag();
-        }
+            holder.txtTitle.setText(post.getTitle());
+            holder.txtDate.setText(DateTimeUtils.javaDateToTimeSpan(post.getDatePublished()));
 
-        holder.txtTitle.setText(post.getTitle());
-        holder.txtDate.setText(DateTimeUtils.javaDateToTimeSpan(post.getDatePublished()));
+            if (post.hasBlogName()) {
+                holder.txtBlogName.setText(post.getBlogName());
+            } else if (post.hasAuthorName()) {
+                holder.txtBlogName.setText(post.getAuthorName());
+            } else {
+                holder.txtBlogName.setText(null);
+            }
 
-        if (post.hasBlogName()) {
-            holder.txtBlogName.setText(post.getBlogName());
-        } else if (post.hasAuthorName()) {
-            holder.txtBlogName.setText(post.getAuthorName());
-        } else {
-            holder.txtBlogName.setText(null);
-        }
+            if (post.hasExcerpt()) {
+                holder.txtText.setVisibility(View.VISIBLE);
+                holder.txtText.setText(post.getExcerpt());
+            } else {
+                holder.txtText.setVisibility(View.GONE);
+            }
 
-        if (post.hasExcerpt()) {
-            holder.txtText.setVisibility(View.VISIBLE);
-            holder.txtText.setText(post.getExcerpt());
-        } else {
-            holder.txtText.setVisibility(View.GONE);
-        }
+            if (post.hasFeaturedImage()) {
+                final String imageUrl = post.getFeaturedImageForDisplay(mPhotonWidth, mPhotonHeight);
+                holder.imgFeatured.setImageUrl(imageUrl, WPNetworkImageView.ImageType.PHOTO);
+                holder.imgFeatured.setVisibility(View.VISIBLE);
+            } else if (post.hasFeaturedVideo()) {
+                holder.imgFeatured.setVideoUrl(post.postId, post.getFeaturedVideo());
+                holder.imgFeatured.setVisibility(View.VISIBLE);
+            } else {
+                holder.imgFeatured.setVisibility(View.GONE);
+            }
 
-        if (post.hasFeaturedImage()) {
-            final String imageUrl = post.getFeaturedImageForDisplay(mPhotonWidth, mPhotonHeight);
-            holder.imgFeatured.setImageUrl(imageUrl, WPNetworkImageView.ImageType.PHOTO);
-            holder.imgFeatured.setVisibility(View.VISIBLE);
-        } else if (post.hasFeaturedVideo()) {
-            holder.imgFeatured.setVideoUrl(post.postId, post.getFeaturedVideo());
-            holder.imgFeatured.setVisibility(View.VISIBLE);
-        } else {
-            holder.imgFeatured.setVisibility(View.GONE);
-        }
-
-        if (post.hasPostAvatar()) {
-            holder.imgAvatar.setImageUrl(post.getPostAvatarForDisplay(mAvatarSz), WPNetworkImageView.ImageType.AVATAR);
-        } else {
-            holder.imgAvatar.showDefaultImage(WPNetworkImageView.ImageType.AVATAR, false);
-        }
+            if (post.hasPostAvatar()) {
+                holder.imgAvatar.setImageUrl(post.getPostAvatarForDisplay(mAvatarSz), WPNetworkImageView.ImageType.AVATAR);
+            } else {
+                holder.imgAvatar.showDefaultImage(WPNetworkImageView.ImageType.AVATAR, false);
+            }
 
         /*final String firstTag = post.getFirstTag();
         if (!TextUtils.isEmpty(firstTag)) {
@@ -278,59 +297,65 @@ public class ReaderPostAdapter extends BaseAdapter {
             holder.txtTag.setOnClickListener(null);
         }*/
 
-        // follow/following - supported by both wp and non-wp (rss) posts
-        showFollowStatus(holder.txtFollow, post.isFollowedByCurrentUser);
-        holder.txtFollow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleFollow(holder, position, post);
-            }
-        });
-
-        // likes, comments & reblogging - supported by wp posts only
-        if (post.isWP()) {
-            showLikeStatus(holder.imgBtnLike, post.isLikedByCurrentUser);
-            holder.imgBtnLike.setOnClickListener(new View.OnClickListener() {
+            // follow/following - supported by both wp and non-wp (rss) posts
+            showFollowStatus(holder.txtFollow, post.isFollowedByCurrentUser);
+            holder.txtFollow.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    toggleLike(holder, position, post);
+                    toggleFollow(holder, position, post);
                 }
             });
 
-            showReblogStatus(holder.imgBtnReblog, post.isRebloggedByCurrentUser);
-            if (!post.isRebloggedByCurrentUser && post.isWP()) {
-                holder.imgBtnReblog.setOnClickListener(new View.OnClickListener() {
+            // likes, comments & reblogging - supported by wp posts only
+            if (post.isWP()) {
+                showLikeStatus(holder.imgBtnLike, post.isLikedByCurrentUser);
+                holder.imgBtnLike.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        AniUtils.zoomAction(holder.imgBtnReblog);
-                        if (mReblogListener!=null)
-                            mReblogListener.onRequestReblog(post);
+                        toggleLike(holder, position, post);
                     }
                 });
+
+                showReblogStatus(holder.imgBtnReblog, post.isRebloggedByCurrentUser);
+                if (!post.isRebloggedByCurrentUser && post.isWP()) {
+                    holder.imgBtnReblog.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            AniUtils.zoomAction(holder.imgBtnReblog);
+                            if (mReblogListener != null)
+                                mReblogListener.onRequestReblog(post);
+                        }
+                    });
+                }
+
+                holder.imgBtnLike.setVisibility(View.VISIBLE);
+                holder.imgBtnComment.setVisibility(View.VISIBLE);
+                holder.imgBtnReblog.setVisibility(View.VISIBLE);
+            } else {
+                holder.imgBtnLike.setVisibility(View.INVISIBLE);
+                holder.imgBtnComment.setVisibility(View.INVISIBLE);
+                holder.imgBtnReblog.setVisibility(View.INVISIBLE);
             }
 
-            holder.imgBtnLike.setVisibility(View.VISIBLE);
-            holder.imgBtnComment.setVisibility(View.VISIBLE);
-            holder.imgBtnReblog.setVisibility(View.VISIBLE);
+            showCounts(holder, post);
+
+            // animate the appearance of this row while new posts are being loaded
+            if (mAnimateRows)
+                animateRow(convertView);
+
+            // if we're nearing the end of the posts, fire request to load more
+            if (mCanRequestMorePosts && mDataRequestedListener != null && (position >= getCount() - 1))
+                mDataRequestedListener.onRequestData(ReaderActions.RequestDataAction.LOAD_OLDER);
+
+            // if image preload is enabled, preload images in the post PRELOAD_OFFSET positions ahead of this one
+            if (mEnableImagePreload && position > (mLastPreloadPos - PRELOAD_OFFSET))
+                preloadPostImages(position + PRELOAD_OFFSET);
         } else {
-            holder.imgBtnLike.setVisibility(View.INVISIBLE);
-            holder.imgBtnComment.setVisibility(View.INVISIBLE);
-            holder.imgBtnReblog.setVisibility(View.INVISIBLE);
+            // We're ready to show the recommended blogs view, get it from the activity
+            ReaderActivity activity = (ReaderActivity) mContext;
+            if (activity.getRecommendedBlogsView() != null)
+                convertView = activity.getRecommendedBlogsView();
         }
-
-        showCounts(holder, post);
-
-        // animate the appearance of this row while new posts are being loaded
-        if (mAnimateRows)
-            animateRow(convertView);
-
-        // if we're nearing the end of the posts, fire request to load more
-        if (mCanRequestMorePosts && mDataRequestedListener!=null && (position >= getCount()-1))
-            mDataRequestedListener.onRequestData(ReaderActions.RequestDataAction.LOAD_OLDER);
-
-        // if image preload is enabled, preload images in the post PRELOAD_OFFSET positions ahead of this one
-        if (mEnableImagePreload && position > (mLastPreloadPos - PRELOAD_OFFSET))
-            preloadPostImages(position + PRELOAD_OFFSET);
 
         return convertView;
     }
@@ -391,6 +416,10 @@ public class ReaderPostAdapter extends BaseAdapter {
 
         WPNetworkImageView imgFeatured;
         WPNetworkImageView imgAvatar;
+    }
+
+    private static class RecommendedBlogsHolder {
+        TextView txtRecommended;
     }
 
     /*
@@ -466,6 +495,11 @@ public class ReaderPostAdapter extends BaseAdapter {
             if (mPosts.isSameList(tmpPosts))
                 return false;
 
+            ReaderPost readerPost = new ReaderPost();
+            readerPost.isRecommendedBlog = true;
+            if (tmpPosts.size() >= 3)
+                tmpPosts.add(3, readerPost);
+
             // if we're not already displaying the max # posts, enable requesting more when
             // the user scrolls to the end of the list
             mCanRequestMorePosts = (ReaderPostTable.getNumPostsWithTag(mCurrentTag) < Constants.READER_MAX_POSTS_TO_DISPLAY);
@@ -474,10 +508,12 @@ public class ReaderPostAdapter extends BaseAdapter {
             // values are all cached by the post after the first time they're computed, so calling
             // these getters ensures the values are immediately available when called from getView
             for (ReaderPost post: tmpPosts) {
-                post.getPostAvatarForDisplay(mAvatarSz);
-                post.getFeaturedImageForDisplay(mPhotonWidth, mPhotonHeight);
-                //post.getFirstTag();
-                post.getDatePublished();
+                if (!post.isRecommendedBlog) {
+                    post.getPostAvatarForDisplay(mAvatarSz);
+                    post.getFeaturedImageForDisplay(mPhotonWidth, mPhotonHeight);
+                    //post.getFirstTag();
+                    post.getDatePublished();
+                }
             }
 
             return true;

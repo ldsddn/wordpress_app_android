@@ -3,13 +3,18 @@ package org.wordpress.android.ui.reader.actions;
 import com.android.volley.VolleyError;
 import com.wordpress.rest.RestRequest;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.wordpress.android.WordPress;
 import org.wordpress.android.datasets.ReaderUserTable;
 import org.wordpress.android.models.ReaderUser;
+import org.wordpress.android.models.RecommendedBlog;
 import org.wordpress.android.ui.prefs.UserPrefs;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.AppLog.T;
+
+import java.util.ArrayList;
 
 /**
  * Created by nbradbury on 8/25/13.
@@ -70,4 +75,28 @@ public class ReaderUserActions {
         ReaderUserTable.addOrUpdateUser(user);
         UserPrefs.setCurrentUserId(user.userId);
     }
+
+    public static void requestRecommendedBlogs(final ReaderActions.RecommendedBlogsListener recommendedBlogsListener) {
+        com.wordpress.rest.RestRequest.Listener listener = new RestRequest.Listener() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                ArrayList<RecommendedBlog> recommendedBlogs = new ArrayList<RecommendedBlog>();
+                if (jsonObject != null && jsonObject.has("blogs")) {
+                    try {
+                        JSONArray blogsArray = jsonObject.getJSONArray("blogs");
+                        for (int i=0; i < blogsArray.length(); i++) {
+                            RecommendedBlog blog = RecommendedBlog.fromJson(blogsArray.getJSONObject(i));
+                            recommendedBlogs.add(blog);
+                        }
+                        recommendedBlogsListener.onRecommendedBlogsResult(recommendedBlogs);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+
+        WordPress.restClient.get("read/recommendations/mine?source=mobile", listener, null);
+    }
+
 }

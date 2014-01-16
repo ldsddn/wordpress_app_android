@@ -170,6 +170,9 @@
             android:label="@string/app_name">
         </activity>
         <activity
+            android:name=".ui.reader.ReaderBlogViewActivity">
+        </activity>
+        <activity
             android:name=".ui.reader.ReaderPostDetailActivity"
             android:theme="@style/WordPress.Theme.NoBackground"
             android:windowSoftInputMode="adjustResize" />

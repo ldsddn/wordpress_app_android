@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selectable_background_wordpress"
+        android:clickable="true"
+        android:paddingTop="@dimen/margin_small"
+        android:paddingBottom="@dimen/margin_small"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <com.android.volley.toolbox.NetworkImageView
+            android:id="@+id/recommended_blog_gravatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"/>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/recommended_blog_gravatar"
+            android:orientation="vertical"
+            android:layout_marginLeft="8dp"
+            android:layout_weight="1">
+
+            <org.wordpress.android.widgets.WPTextView
+                android:id="@+id/recommended_blog_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textSize="@dimen/text_sz_large"
+                android:textColor="@color/blue_medium" />
+
+            <org.wordpress.android.widgets.WPTextView
+                android:id="@+id/recommended_blog_reason"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textColor="@color/grey_medium"
+                android:textSize="@dimen/text_sz_medium" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="1px"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="8dp"
+            android:background="@color/gray" />
+
+        <ImageButton
+            android:id="@+id/follow_button"
+            android:tint="#858585"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/follow_indicator"
+            android:contentDescription="@string/follow"
+            android:background="@drawable/list_bg_selector"
+            android:padding="8dp" />
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/row_divider"
+        android:layout_width="fill_parent"
+        android:layout_height="1px"
+        android:background="@color/gray" />
+
+</LinearLayout>
