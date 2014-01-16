@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 
@@ -39,6 +40,10 @@ public class ReaderActivity extends WPActionBarActivity {
     private static final String TAG_FRAGMENT_POST_LIST = "reader_post_list";
     private static final String KEY_INITIAL_UPDATE = "initial_update";
     private static final String KEY_HAS_PURGED = "has_purged";
+    protected static final String ARG_LIST_TYPE = "list_type";
+    protected static final String ARG_LIST_TYPE_ID = "list_type_id";
+
+    public static enum PostListType {TAG, BLOG};
 
     private MenuItem mRefreshMenuItem;
     private boolean mHasPerformedInitialUpdate = false;
@@ -65,8 +70,18 @@ public class ReaderActivity extends WPActionBarActivity {
     public void onResume() {
         super.onResume();
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter(ACTION_REFRESH_POSTS));
-        if (getPostListFragment() == null)
-            showPostListFragment();
+        if (getPostListFragment() == null) {
+            final PostListType listType;
+            final long listTypeId;
+            if (getIntent() != null && getIntent().hasExtra(ARG_LIST_TYPE)) {
+                listType = (PostListType) getIntent().getSerializableExtra(ARG_LIST_TYPE);
+                listTypeId = getIntent().getLongExtra(ARG_LIST_TYPE_ID, 0);
+            } else {
+                listType = PostListType.TAG;
+                listTypeId = 0;
+            }
+            showPostListFragment(listType, listTypeId);
+        }
     }
 
     @Override
@@ -191,11 +206,21 @@ public class ReaderActivity extends WPActionBarActivity {
                 return true;
             case R.id.menu_refresh :
                 ReaderPostListFragment fragment = getPostListFragment();
-                if (fragment!=null) {
+                if (fragment != null) {
                     if (!NetworkUtils.isNetworkAvailable(this)) {
                         ToastUtils.showToast(this, R.string.reader_toast_err_no_connection, ToastUtils.Duration.LONG);
                     } else {
-                        fragment.updatePostsWithCurrentTag(ReaderActions.RequestDataAction.LOAD_NEWER, RefreshType.MANUAL);
+                        PostListType listType = fragment.getPostListType();
+                        switch (listType) {
+                            case TAG:
+                                fragment.updatePostsWithCurrentTag(ReaderActions.RequestDataAction.LOAD_NEWER, RefreshType.MANUAL);
+                                break;
+                            case BLOG:
+                                fragment.updatePostsInCurrentBlog(RefreshType.MANUAL);
+                                break;
+                            default:
+                                break;
+                        }
                     }
                     return true;
                 }
@@ -210,36 +235,47 @@ public class ReaderActivity extends WPActionBarActivity {
         super.onSignout();
         mHasPerformedInitialUpdate = false;
 
-        // reader database will have been cleared by the time this is called, but the fragment must
-        // be removed or else it will continue to show the same articles - onResume() will take care
+        // reader database will have been cleared by the time this is called, but the fragments must
+        // be removed or else they will continue to show the same articles - onResume() will take care
         // of re-displaying the fragment if necessary
-        removePostListFragment();
+        removePostListFragments();
     }
 
     /*
      * show fragment containing list of latest posts
      */
-    private void showPostListFragment() {
-        getSupportFragmentManager()
-                .beginTransaction()
-                .add(R.id.fragment_container, ReaderPostListFragment.newInstance(this), TAG_FRAGMENT_POST_LIST)
-                .commit();
+    protected void showPostListFragment(PostListType listType, long listTypeId) {
+        ReaderPostListFragment fragment = ReaderPostListFragment.newInstance(this, listType, listTypeId);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // add this fragment to the backstack if one already exists
+        if (getPostListFragment() != null)
+            transaction.addToBackStack(null);
+
+       transaction.add(R.id.fragment_container, fragment, TAG_FRAGMENT_POST_LIST)
+                  .commit();
     }
 
-    private void removePostListFragment() {
+    /*
+     * removes all post list fragments
+     */
+    private void removePostListFragments() {
         ReaderPostListFragment fragment = getPostListFragment();
-        if (fragment==null)
-            return;
-
-        getSupportFragmentManager()
-                .beginTransaction()
-                .remove(fragment)
-                .commit();
+        while (fragment != null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .remove(fragment)
+                    .commit();
+            fragment = getPostListFragment();
+        }
     }
 
+    /*
+     * returns the current post list fragment (if any exists)
+     */
     private ReaderPostListFragment getPostListFragment() {
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT_POST_LIST);
-        if (fragment==null)
+        if (fragment == null)
             return null;
         return ((ReaderPostListFragment) fragment);
     }

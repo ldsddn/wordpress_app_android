@@ -62,10 +62,11 @@ public class ReaderActions {
     }
 
     /*
-     * used by post list & post list adapter when user asks to reblog a post
+     * used by post list & post list adapter when user asks to reblog a post, show post detail,
+     * or show detail for the blog the post is in
      */
-    public interface RequestReblogListener {
+    public interface RequestPostNavigationListener {
         public void onRequestReblog(ReaderPost post);
+        public void onRequestBlogDetail(ReaderPost post);
     }
-
 }

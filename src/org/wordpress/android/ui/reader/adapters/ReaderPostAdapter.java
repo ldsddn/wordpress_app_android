@@ -2,7 +2,6 @@ package org.wordpress.android.ui.reader.adapters;
 
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -23,7 +22,7 @@ import org.wordpress.android.WordPress;
 import org.wordpress.android.datasets.ReaderPostTable;
 import org.wordpress.android.models.ReaderPost;
 import org.wordpress.android.models.ReaderPostList;
-import org.wordpress.android.ui.reader.ReaderActivityLauncher;
+import org.wordpress.android.ui.reader.ReaderActivity;
 import org.wordpress.android.ui.reader.actions.ReaderActions;
 import org.wordpress.android.ui.reader.actions.ReaderPostActions;
 import org.wordpress.android.util.AniUtils;
@@ -37,10 +36,12 @@ import org.wordpress.android.widgets.WPNetworkImageView;
 
 /**
  * Created by nbradbury on 6/27/13.
- * adapter for list of posts in a specific tag
+ * adapter for list of posts in a specific tag/blog
  */
 public class ReaderPostAdapter extends BaseAdapter {
     private String mCurrentTag;
+    private long mCurrentBlogId;
+    private ReaderActivity.PostListType mListType = ReaderActivity.PostListType.TAG;
 
     private int mPhotonWidth;
     private int mPhotonHeight;
@@ -58,7 +59,7 @@ public class ReaderPostAdapter extends BaseAdapter {
     private final String mFollowing;
     private final String mFollow;
 
-    private ReaderActions.RequestReblogListener mReblogListener;
+    private ReaderActions.RequestPostNavigationListener mNavigationListener;
     private ReaderActions.DataLoadedListener mDataLoadedListener;
     private ReaderActions.DataRequestedListener mDataRequestedListener;
 
@@ -67,14 +68,14 @@ public class ReaderPostAdapter extends BaseAdapter {
     private static final int PRELOAD_OFFSET = 2;
 
     public ReaderPostAdapter(Context context,
-                             ReaderActions.RequestReblogListener reblogListener,
+                             ReaderActions.RequestPostNavigationListener navigationListener,
                              ReaderActions.DataLoadedListener dataLoadedListener,
                              ReaderActions.DataRequestedListener dataRequestedListener) {
         super();
 
         mInflater = LayoutInflater.from(context);
 
-        mReblogListener = reblogListener;
+        mNavigationListener = navigationListener;
         mDataLoadedListener = dataLoadedListener;
         mDataRequestedListener = dataRequestedListener;
 
@@ -100,8 +101,21 @@ public class ReaderPostAdapter extends BaseAdapter {
         mEnableImagePreload = SysUtils.isGteAndroid4();
     }
 
+    /*
+     * use this to show posts in a specific blog
+     */
+    public void setBlogId(long blogId) {
+        mCurrentBlogId = blogId;
+        mListType = ReaderActivity.PostListType.BLOG;
+        reload(false);
+    }
+
+    /*
+     * use this to show posts with a specific tag
+     */
     public void setTag(String tagName) {
         mCurrentTag = tagName;
+        mListType = ReaderActivity.PostListType.TAG;
         reload(false);
     }
 
@@ -163,7 +177,7 @@ public class ReaderPostAdapter extends BaseAdapter {
             }
         }
         if (isChanged)
-         notifyDataSetChanged();
+            notifyDataSetChanged();
     }
     
     
@@ -264,14 +278,14 @@ public class ReaderPostAdapter extends BaseAdapter {
             holder.imgAvatar.showDefaultImage(WPNetworkImageView.ImageType.AVATAR, false);
         }
 
-        holder.imgAvatar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Context context = holder.imgAvatar.getContext();
-                if (context instanceof Activity)
-                    ReaderActivityLauncher.showReaderBlogDetailForResult((Activity)context, post.blogId);
-            }
-        });
+        if (mNavigationListener != null) {
+            holder.imgAvatar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mNavigationListener.onRequestBlogDetail(post);
+                }
+            });
+        }
 
         /*final String firstTag = post.getFirstTag();
         if (!TextUtils.isEmpty(firstTag)) {
@@ -314,8 +328,8 @@ public class ReaderPostAdapter extends BaseAdapter {
                     @Override
                     public void onClick(View v) {
                         AniUtils.zoomAction(holder.imgBtnReblog);
-                        if (mReblogListener!=null)
-                            mReblogListener.onRequestReblog(post);
+                        if (mNavigationListener != null)
+                            mNavigationListener.onRequestReblog(post);
                     }
                 });
             }
@@ -473,13 +487,36 @@ public class ReaderPostAdapter extends BaseAdapter {
         }
         @Override
         protected Boolean doInBackground(Void... params) {
-            tmpPosts = ReaderPostTable.getPostsWithTag(mCurrentTag, Constants.READER_MAX_POSTS_TO_DISPLAY);
+            switch (mListType) {
+                case TAG:
+                    tmpPosts = ReaderPostTable.getPostsWithTag(mCurrentTag, Constants.READER_MAX_POSTS_TO_DISPLAY);
+                    break;
+                case BLOG:
+                    tmpPosts = ReaderPostTable.getPostsInBlog(mCurrentBlogId, Constants.READER_MAX_POSTS_TO_DISPLAY);
+                    break;
+                default:
+                    return false;
+            }
+
             if (mPosts.isSameList(tmpPosts))
                 return false;
 
             // if we're not already displaying the max # posts, enable requesting more when
             // the user scrolls to the end of the list
-            mCanRequestMorePosts = (ReaderPostTable.getNumPostsWithTag(mCurrentTag) < Constants.READER_MAX_POSTS_TO_DISPLAY);
+            final int numExisting;
+            switch (mListType) {
+                case TAG:
+                    numExisting = ReaderPostTable.getNumPostsWithTag(mCurrentTag);
+                    break;
+                case BLOG:
+                    numExisting = ReaderPostTable.getNumPostsInBlog(mCurrentBlogId);
+                    break;
+                default:
+                    numExisting = 0;
+                    break;
+
+            }
+            mCanRequestMorePosts = (numExisting < Constants.READER_MAX_POSTS_TO_DISPLAY);
 
             // pre-calc avatar URLs, featured image URLs, tags and pubDates in each post - these
             // values are all cached by the post after the first time they're computed, so calling

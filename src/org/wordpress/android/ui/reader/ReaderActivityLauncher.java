@@ -18,6 +18,13 @@ import org.wordpress.android.util.ToastUtils;
  */
 public class ReaderActivityLauncher {
 
+    public static void showReaderPostList(Context context, ReaderActivity.PostListType listType, long listTypeId) {
+        Intent intent = new Intent(context, ReaderActivity.class);
+        intent.putExtra(ReaderActivity.ARG_LIST_TYPE, listType);
+        intent.putExtra(ReaderActivity.ARG_LIST_TYPE_ID, listTypeId);
+        context.startActivity(intent);
+    }
+
     public static void showReaderPostDetailForResult(Activity activity, ReaderPost post) {
         if (post==null)
             return;
@@ -65,12 +72,6 @@ public class ReaderActivityLauncher {
         intent.putExtra(ReaderReblogActivity.ARG_BLOG_ID, post.blogId);
         intent.putExtra(ReaderReblogActivity.ARG_POST_ID, post.postId);
         activity.startActivityForResult(intent, Constants.INTENT_READER_REBLOG);
-    }
-
-    public static void showReaderBlogDetailForResult(Activity activity, long blogId) {
-        Intent intent = new Intent(activity, ReaderBlogDetailActivity.class);
-        intent.putExtra(ReaderBlogDetailActivity.ARG_BLOG_ID, blogId);
-        activity.startActivityForResult(intent, Constants.INTENT_READER_BLOG_DETAIL);
     }
 
     public static enum OpenUrlType { INTERNAL, EXTERNAL }
