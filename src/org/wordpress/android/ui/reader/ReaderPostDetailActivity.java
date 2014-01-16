@@ -814,7 +814,7 @@ public class ReaderPostDetailActivity extends WPActionBarActivity {
         editComment.setHint(replyToCommentId==0 ? R.string.reader_hint_comment_on_post : R.string.reader_hint_comment_on_comment);
 
         imgBtnComment.setSelected(true);
-        AniUtils.flyIn(layoutCommentBox);
+        AniUtils.flyIn(layoutCommentBox, AniUtils.FlyInStyle.FROM_BOTTOM);
 
         editComment.requestFocus();
         editComment.setOnEditorActionListener(new TextView.OnEditorActionListener() {

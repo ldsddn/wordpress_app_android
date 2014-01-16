@@ -48,12 +48,14 @@ public class AniUtils {
         startAnimation(target, R.anim.reader_zoom_action);
     }
 
-    public static void flyIn(View target) {
-        flyIn(target, null);
+    public static enum FlyInStyle {FROM_TOP, FROM_BOTTOM}
+    public static void flyIn(View target, FlyInStyle flyInStyle) {
+        flyIn(target, flyInStyle, null);
     }
-    public static void flyIn(View target, AnimationListener listener) {
+    public static void flyIn(View target, FlyInStyle flyInStyle, AnimationListener listener) {
         Context context = target.getContext();
-        Animation animation = AnimationUtils.loadAnimation(context, R.anim.reader_flyin);
+        int resId = (flyInStyle == FlyInStyle.FROM_TOP ? R.anim.reader_flyin_from_top : R.anim.reader_flyin_from_bottom);
+        Animation animation = AnimationUtils.loadAnimation(context, resId);
         if (animation==null)
             return;
 

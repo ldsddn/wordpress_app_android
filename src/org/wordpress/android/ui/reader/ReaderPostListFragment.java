@@ -781,7 +781,7 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         showFollowStatus(txtFollowBtn, isFollowing);
 
         if (mBlogHeader.getVisibility() != View.VISIBLE)
-            AniUtils.flyIn(mBlogHeader);
+            AniUtils.flyIn(mBlogHeader, AniUtils.FlyInStyle.FROM_TOP);
     }
 
     /*

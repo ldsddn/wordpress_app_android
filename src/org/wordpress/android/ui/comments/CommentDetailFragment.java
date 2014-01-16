@@ -302,7 +302,7 @@ public class CommentDetailFragment extends Fragment implements NotificationFragm
 
         // make sure reply box is showing
         if (mLayoutReply.getVisibility() != View.VISIBLE && isReplyingEnabled())
-            AniUtils.flyIn(mLayoutReply);
+            AniUtils.flyIn(mLayoutReply, AniUtils.FlyInStyle.FROM_BOTTOM);
     }
 
     /*
@@ -566,7 +566,7 @@ public class CommentDetailFragment extends Fragment implements NotificationFragm
         // animate the buttons in if they're not visible
         if (mLayoutButtons.getVisibility() != View.VISIBLE && (isMarkSpamEnabled() || isModerationEnabled())) {
             mLayoutButtons.clearAnimation();
-            AniUtils.flyIn(mLayoutButtons);
+            AniUtils.flyIn(mLayoutButtons, AniUtils.FlyInStyle.FROM_BOTTOM);
         }
     }
 

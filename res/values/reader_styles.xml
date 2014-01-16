@@ -15,7 +15,7 @@
     <!-- window animations -->
     <style name="ReaderAnimation" />
     <style name="ReaderAnimation.ReaderPopup">
-        <item name="android:windowEnterAnimation">@anim/reader_flyin</item>
+        <item name="android:windowEnterAnimation">@anim/reader_flyin_from_bottom</item>
         <item name="android:windowExitAnimation">@anim/reader_flyout</item>
     </style>
 
