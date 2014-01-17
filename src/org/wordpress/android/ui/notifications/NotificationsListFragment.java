@@ -142,37 +142,54 @@ public class NotificationsListFragment extends ListFragment {
         public View getView(int position, View convertView, ViewGroup parent) {
             View view = super.getView(position, convertView, parent);
             final Note note = getItem(position);
+            final NoteViewHolder holder;
 
-            final TextView txtDetail = (TextView) view.findViewById(R.id.note_detail);
-            final TextView unreadIndicator = (TextView) view.findViewById(R.id.unread_indicator);
-            final TextView txtDate = (TextView) view.findViewById(R.id.text_date);
-            final ProgressBar placeholderLoading = (ProgressBar) view.findViewById(R.id.placeholder_loading);
-            final NetworkImageView imgAvatar = (NetworkImageView) view.findViewById(R.id.note_avatar);
-            final ImageView imgNoteIcon = (ImageView) view.findViewById(R.id.note_icon);
-
-            if (note.isCommentType()) {
-                txtDetail.setText(note.getCommentPreview());
-                txtDetail.setVisibility(View.VISIBLE);
+            if (convertView == null || convertView.getTag() == null) {
+                holder = new NoteViewHolder();
+                holder.txtDetail = (TextView) view.findViewById(R.id.note_detail);
+                holder.unreadIndicator = (TextView) view.findViewById(R.id.unread_indicator);
+                holder.txtDate = (TextView) view.findViewById(R.id.text_date);
+                holder.placeholderLoading = (ProgressBar) view.findViewById(R.id.placeholder_loading);
+                holder.imgAvatar = (NetworkImageView) view.findViewById(R.id.note_avatar);
+                holder.imgNoteIcon = (ImageView) view.findViewById(R.id.note_icon);
+                if (convertView != null)
+                    convertView.setTag(holder);
             } else {
-                txtDetail.setVisibility(View.GONE);
+                holder = (NoteViewHolder) convertView.getTag();
             }
 
-            txtDate.setText(note.getTimeSpan());
+            if (note.isCommentType()) {
+                holder.txtDetail.setText(note.getCommentPreview());
+                holder.txtDetail.setVisibility(View.VISIBLE);
+            } else {
+                holder.txtDetail.setVisibility(View.GONE);
+            }
+
+            holder.txtDate.setText(note.getTimeSpan());
 
             // gravatars default to having s=256 which is considerably larger than we need here, so
             // change the s= param to the actual size used here
             String avatarUrl = note.getIconURL();
             if (avatarUrl!=null && avatarUrl.contains("s=256"))
                 avatarUrl = avatarUrl.replace("s=256", "s=" + mAvatarSz);
-            imgAvatar.setDefaultImageResId(R.drawable.placeholder);
-            imgAvatar.setImageUrl(GravatarUtils.fixGravatarUrl(avatarUrl), WordPress.imageLoader);
+            holder.imgAvatar.setDefaultImageResId(R.drawable.placeholder);
+            holder.imgAvatar.setImageUrl(GravatarUtils.fixGravatarUrl(avatarUrl), WordPress.imageLoader);
 
-            imgNoteIcon.setImageDrawable(getDrawableForType(note.getType()));
+            holder.imgNoteIcon.setImageDrawable(getDrawableForType(note.getType()));
 
-            unreadIndicator.setVisibility(note.isUnread() ? View.VISIBLE : View.INVISIBLE);
-            placeholderLoading.setVisibility(note.isPlaceholder() ? View.VISIBLE : View.GONE);
+            holder.unreadIndicator.setVisibility(note.isUnread() ? View.VISIBLE : View.INVISIBLE);
+            holder.placeholderLoading.setVisibility(note.isPlaceholder() ? View.VISIBLE : View.GONE);
 
             return view;
+        }
+
+        private class NoteViewHolder {
+            TextView txtDetail;
+            TextView unreadIndicator;
+            TextView txtDate;
+            ProgressBar placeholderLoading;
+            NetworkImageView imgAvatar;
+            ImageView imgNoteIcon;
         }
 
         public void addAll(List<Note> notes) {
