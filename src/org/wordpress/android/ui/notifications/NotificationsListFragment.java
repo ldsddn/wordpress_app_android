@@ -158,8 +158,8 @@ public class NotificationsListFragment extends ListFragment {
                 holder = (NoteViewHolder) convertView.getTag();
             }
 
-            if (note.isCommentType()) {
-                holder.txtDetail.setText(note.getCommentPreview());
+            if (note.hasSnippet() && (note.isCommentType() || note.isAutomattcherType())) {
+                holder.txtDetail.setText(note.getSnippet());
                 holder.txtDetail.setVisibility(View.VISIBLE);
             } else {
                 holder.txtDetail.setVisibility(View.GONE);

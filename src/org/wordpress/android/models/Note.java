@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.text.Html;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.style.QuoteSpan;
 
 import org.json.JSONArray;
@@ -69,6 +70,7 @@ public class Note {
     private transient String mSubject = null;
     private transient String mIconUrl = null;
     private transient String mTimestamp = null;
+    private transient String mSnippet = null;
 
     public int blogId;
     public int postId;
@@ -178,14 +180,29 @@ public class Note {
             mIconUrl = queryJSON("subject.icon", "");
         return mIconUrl;
     }
+
+    /*
+     * plain-text snippet returned by the server - currently shown only for comments
+     */
+    public String getSnippet() {
+        if (mSnippet == null) {
+            mSnippet = queryJSON("snippet", "");
+        }
+        return mSnippet;
+    }
+
+    public boolean hasSnippet() {
+        return !TextUtils.isEmpty(getSnippet());
+    }
     /**
      * Removes HTML and cleans up newlines and whitespace
      */
-    public String getCommentPreview(){
+    /*public String getCommentPreview(){
         if (mCommentPreview==null)
             mCommentPreview = getCommentBody().toString().replaceAll("\uFFFC", "").replace("\n", " ").replaceAll("[\\s]{2,}", " ").trim();
         return mCommentPreview;
-    }
+    }*/
+
     /**
      * Gets the comment's text with getCommentText() and sends it through HTML.fromHTML
      */
@@ -336,12 +353,11 @@ public class Note {
         if (isCommentType()) {
             // pre-load the comment HTML for being displayed. Cleans up emoticons.
             mComment = Note.prepareHtml(getCommentText());
-            // pre-load the preview text
-            getCommentPreview();
         }
 
-        // pre-load the subject and avatar url
+        // pre-load the subject, snippet, and avatar url
         getSubject();
+        getSnippet();
         getIconURL();
 
         // pre-load site/post/comment IDs
