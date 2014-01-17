@@ -32,6 +32,7 @@ import org.wordpress.android.models.ReaderTag;
 import org.wordpress.android.ui.prefs.UserPrefs;
 import org.wordpress.android.ui.reader.actions.ReaderActions;
 import org.wordpress.android.ui.reader.actions.ReaderBlogActions;
+import org.wordpress.android.ui.reader.actions.ReaderBlogActions.BlogAction;
 import org.wordpress.android.ui.reader.actions.ReaderPostActions;
 import org.wordpress.android.ui.reader.adapters.ReaderActionBarTagAdapter;
 import org.wordpress.android.ui.reader.adapters.ReaderPostAdapter;
@@ -693,9 +694,16 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
             txtFollowCnt.setText(numFollowers);
 
             boolean isFollowing = ReaderBlogTable.isFollowedBlogUrl(blog.getUrl());
-            showFollowStatus(txtFollowBtn, isFollowing);
+            showBlogFollowStatus(txtFollowBtn, isFollowing);
             txtFollowBtn.setVisibility(View.VISIBLE);
             divider.setVisibility(View.VISIBLE);
+
+            txtFollowBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    toggleBlogFollowStatus(txtFollowBtn, blog);
+                }
+            });
         } else {
             txtBlogName.setText(null);
             txtDescription.setText(null);
@@ -709,10 +717,29 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     }
 
     /*
+     * used when viewing posts in a specific blog, toggles the status of the currently displayed blog
+     */
+    private void toggleBlogFollowStatus(final TextView txtFollow, final ReaderBlog blog) {
+        if (blog == null)
+            return;
+
+        AniUtils.zoomAction(txtFollow);
+
+        boolean isCurrentlyFollowing = ReaderBlogTable.isFollowedBlogUrl(blog.getUrl());
+        BlogAction blogAction = (isCurrentlyFollowing ? BlogAction.UNFOLLOW : BlogAction.FOLLOW);
+        if (!ReaderBlogActions.performBlogAction(blogAction, blog.getUrl()))
+            return;
+
+        boolean isNowFollowing = !isCurrentlyFollowing;
+        showBlogFollowStatus(txtFollow, isNowFollowing);
+        updateFollowStatusOnPostsForBlog(blog.blogId, isNowFollowing);
+    }
+
+    /*
      * updates the follow button in the blog header to match whether the current
      * user is following this blog
      */
-    private void showFollowStatus(TextView txtFollow, boolean isFollowed) {
+    private void showBlogFollowStatus(TextView txtFollow, boolean isFollowed) {
         // text for follow button
         String following = getString(R.string.reader_btn_unfollow).toUpperCase();
         String follow = getString(R.string.reader_btn_follow).toUpperCase();
