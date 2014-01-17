@@ -21,7 +21,6 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.wordpress.rest.RestRequest;
 
-import org.json.JSONObject;
 import org.wordpress.android.Constants;
 import org.wordpress.android.R;
 import org.wordpress.android.WordPress;
@@ -662,7 +661,6 @@ public class ReaderPostAdapter extends BaseAdapter {
                         notifyDataSetChanged();
                     }
                 }
-
             }
         });
     }
