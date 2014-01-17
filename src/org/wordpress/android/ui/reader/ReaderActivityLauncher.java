@@ -18,11 +18,16 @@ import org.wordpress.android.util.ToastUtils;
  */
 public class ReaderActivityLauncher {
 
-    public static void showReaderPostList(Context context, ReaderActivity.PostListType listType, long listTypeId) {
-        Intent intent = new Intent(context, ReaderActivity.class);
-        intent.putExtra(ReaderActivity.ARG_LIST_TYPE, listType);
-        intent.putExtra(ReaderActivity.ARG_LIST_TYPE_ID, listTypeId);
-        context.startActivity(intent);
+    public static void showReaderPostList(Context context, ReaderPostListFragment.PostListType listType, long listTypeId) {
+        if (context instanceof ReaderActivity) {
+            ReaderActivity activity = (ReaderActivity) context;
+            activity.showPostListFragment(listType, listTypeId);
+        } else {
+            Intent intent = new Intent(context, ReaderActivity.class);
+            intent.putExtra(ReaderActivity.ARG_LIST_TYPE, listType);
+            intent.putExtra(ReaderActivity.ARG_LIST_TYPE_ID, listTypeId);
+            context.startActivity(intent);
+        }
     }
 
     public static void showReaderPostDetailForResult(Activity activity, ReaderPost post) {

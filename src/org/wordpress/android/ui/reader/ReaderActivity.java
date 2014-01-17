@@ -11,6 +11,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
@@ -19,13 +20,16 @@ import org.wordpress.android.R;
 import org.wordpress.android.datasets.ReaderDatabase;
 import org.wordpress.android.datasets.ReaderPostTable;
 import org.wordpress.android.models.ReaderPost;
+import org.wordpress.android.models.ReaderTag;
 import org.wordpress.android.ui.WPActionBarActivity;
+import org.wordpress.android.ui.reader.ReaderPostListFragment.PostListType;
 import org.wordpress.android.ui.reader.ReaderPostListFragment.RefreshType;
 import org.wordpress.android.ui.reader.actions.ReaderActions;
 import org.wordpress.android.ui.reader.actions.ReaderAuthActions;
 import org.wordpress.android.ui.reader.actions.ReaderBlogActions;
 import org.wordpress.android.ui.reader.actions.ReaderTagActions;
 import org.wordpress.android.ui.reader.actions.ReaderUserActions;
+import org.wordpress.android.ui.reader.adapters.ReaderActionBarTagAdapter;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.AppLog.T;
 import org.wordpress.android.util.NetworkUtils;
@@ -42,8 +46,6 @@ public class ReaderActivity extends WPActionBarActivity {
     private static final String KEY_HAS_PURGED = "has_purged";
     protected static final String ARG_LIST_TYPE = "list_type";
     protected static final String ARG_LIST_TYPE_ID = "list_type_id";
-
-    public static enum PostListType {TAG, BLOG};
 
     private MenuItem mRefreshMenuItem;
     private boolean mHasPerformedInitialUpdate = false;
@@ -137,7 +139,8 @@ public class ReaderActivity extends WPActionBarActivity {
                 if (isResultOK && readerFragment!=null && data!=null) {
                     // reload tags if they were changed, and set the last tag added as the current one
                     if (data.getBooleanExtra(ReaderTagActivity.KEY_TAGS_CHANGED, false)) {
-                        readerFragment.reloadTags();
+                        getActionBarAdapter().reloadTags();
+                        readerFragment.checkCurrentTag();
                         String lastAddedTag = data.getStringExtra(ReaderTagActivity.KEY_LAST_ADDED_TAG);
                         if (!TextUtils.isEmpty(lastAddedTag))
                             readerFragment.setCurrentTag(lastAddedTag);
@@ -245,15 +248,19 @@ public class ReaderActivity extends WPActionBarActivity {
      * show fragment containing list of latest posts
      */
     protected void showPostListFragment(PostListType listType, long listTypeId) {
-        ReaderPostListFragment fragment = ReaderPostListFragment.newInstance(this, listType, listTypeId);
+        ReaderPostListFragment currentFragment = getPostListFragment();
+        ReaderPostListFragment newFragment = ReaderPostListFragment.newInstance(this, listType, listTypeId);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
         // add this fragment to the backstack if one already exists
         if (getPostListFragment() != null)
             transaction.addToBackStack(null);
 
-       transaction.add(R.id.fragment_container, fragment, TAG_FRAGMENT_POST_LIST)
+       transaction.add(R.id.fragment_container, newFragment, TAG_FRAGMENT_POST_LIST)
                   .commit();
+
+        if (currentFragment == null || currentFragment.getPostListType() != listType)
+            setupActionBar(listType);
     }
 
     /*
@@ -289,9 +296,10 @@ public class ReaderActivity extends WPActionBarActivity {
             public void onUpdateResult(ReaderActions.UpdateResult result) {
                 // refresh tags if they've changed
                 if (result == ReaderActions.UpdateResult.CHANGED) {
+                    getActionBarAdapter().refreshTags();
                     ReaderPostListFragment fragment = getPostListFragment();
                     if (fragment != null)
-                        fragment.refreshTags();
+                        fragment.checkCurrentTag();
                 }
             }
         };
@@ -314,4 +322,84 @@ public class ReaderActivity extends WPActionBarActivity {
             }
         }
     };
+
+    private ReaderActionBarTagAdapter mActionBarAdapter;
+    protected ReaderActionBarTagAdapter getActionBarAdapter() {
+        if (mActionBarAdapter == null) {
+            ReaderActions.DataLoadedListener dataListener = new ReaderActions.DataLoadedListener() {
+                @Override
+                public void onDataLoaded(boolean isEmpty) {
+                    ReaderPostListFragment fragment = getPostListFragment();
+                    if (fragment != null)
+                        selectTagInActionBar(fragment.getCurrentTagName());
+                }
+            };
+
+            mActionBarAdapter = new ReaderActionBarTagAdapter(this, isStaticMenuDrawer(), dataListener);
+        }
+        return mActionBarAdapter;
+    }
+
+    /*
+     * make sure the passed tag is the one selected in the actionbar
+     */
+    protected void selectTagInActionBar(String tagName) {
+        if (tagName==null)
+            return;
+
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar==null)
+            return;
+
+        int position = getActionBarAdapter().getIndexOfTagName(tagName);
+        if (position == -1)
+            return;
+        if (position == actionBar.getSelectedNavigationIndex())
+            return;
+
+        actionBar.setSelectedNavigationItem(position);
+    }
+
+    private boolean hasActionBarAdapter() {
+        return (mActionBarAdapter != null);
+    }
+
+    private void setupActionBar(PostListType listType) {
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar == null)
+            return;
+
+        switch (listType) {
+            case TAG:
+                actionBar.setDisplayShowTitleEnabled(false);
+                actionBar.setDisplayHomeAsUpEnabled(true);
+                actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+
+                ActionBar.OnNavigationListener navigationListener = new ActionBar.OnNavigationListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(int itemPosition, long itemId) {
+                        ReaderTag tag = (ReaderTag) getActionBarAdapter().getItem(itemPosition);
+                        if (tag != null) {
+                            ReaderPostListFragment fragment = getPostListFragment();
+                            if (fragment != null)
+                                fragment.setCurrentTag(tag.getTagName());
+                            AppLog.d(T.READER, "tag chosen from actionbar: " + tag.getTagName());
+                        }
+                        return true;
+                    }
+                };
+
+                actionBar.setListNavigationCallbacks(getActionBarAdapter(), navigationListener);
+                break;
+
+            case BLOG:
+                actionBar.setDisplayShowTitleEnabled(true);
+                actionBar.setDisplayHomeAsUpEnabled(false);
+                actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+                break;
+
+            default:
+                break;
+        }
+    }
 }

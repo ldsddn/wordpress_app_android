@@ -22,7 +22,7 @@ import org.wordpress.android.WordPress;
 import org.wordpress.android.datasets.ReaderPostTable;
 import org.wordpress.android.models.ReaderPost;
 import org.wordpress.android.models.ReaderPostList;
-import org.wordpress.android.ui.reader.ReaderActivity;
+import org.wordpress.android.ui.reader.ReaderPostListFragment.PostListType;
 import org.wordpress.android.ui.reader.actions.ReaderActions;
 import org.wordpress.android.ui.reader.actions.ReaderPostActions;
 import org.wordpress.android.util.AniUtils;
@@ -41,7 +41,7 @@ import org.wordpress.android.widgets.WPNetworkImageView;
 public class ReaderPostAdapter extends BaseAdapter {
     private String mCurrentTag;
     private long mCurrentBlogId;
-    private ReaderActivity.PostListType mListType = ReaderActivity.PostListType.TAG;
+    private PostListType mListType = PostListType.TAG;
 
     private int mPhotonWidth;
     private int mPhotonHeight;
@@ -106,7 +106,7 @@ public class ReaderPostAdapter extends BaseAdapter {
      */
     public void setBlogId(long blogId) {
         mCurrentBlogId = blogId;
-        mListType = ReaderActivity.PostListType.BLOG;
+        mListType = PostListType.BLOG;
         reload(false);
     }
 
@@ -115,7 +115,7 @@ public class ReaderPostAdapter extends BaseAdapter {
      */
     public void setTag(String tagName) {
         mCurrentTag = tagName;
-        mListType = ReaderActivity.PostListType.TAG;
+        mListType = PostListType.TAG;
         reload(false);
     }
 

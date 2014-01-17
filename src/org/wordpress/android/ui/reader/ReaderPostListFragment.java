@@ -20,9 +20,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-
 import org.wordpress.android.Constants;
 import org.wordpress.android.R;
 import org.wordpress.android.WordPress;
@@ -32,9 +29,7 @@ import org.wordpress.android.datasets.ReaderTagTable;
 import org.wordpress.android.models.ReaderBlog;
 import org.wordpress.android.models.ReaderPost;
 import org.wordpress.android.models.ReaderTag;
-import org.wordpress.android.ui.WPActionBarActivity;
 import org.wordpress.android.ui.prefs.UserPrefs;
-import org.wordpress.android.ui.reader.ReaderActivity.PostListType;
 import org.wordpress.android.ui.reader.actions.ReaderActions;
 import org.wordpress.android.ui.reader.actions.ReaderBlogActions;
 import org.wordpress.android.ui.reader.actions.ReaderPostActions;
@@ -52,9 +47,9 @@ import org.wordpress.android.util.StringUtils;
  * Fragment hosted by ReaderActivity which shows a list of posts in a specific tag/blog
  */
 public class ReaderPostListFragment extends Fragment implements AbsListView.OnScrollListener {
-    private ReaderPostAdapter mPostAdapter;
-    private ReaderActionBarTagAdapter mActionBarAdapter;
+    public static enum PostListType {TAG, BLOG}
 
+    private ReaderPostAdapter mPostAdapter;
     private TextView mNewPostsBar;
     private View mEmptyView;
     private ProgressBar mProgress;
@@ -126,8 +121,6 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
             mCurrentTag = savedInstanceState.getString(KEY_TAG_NAME);
             mListState = savedInstanceState.getParcelable(LIST_STATE);
         }
-
-        setupActionBar();
     }
 
     @Override
@@ -165,7 +158,6 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         unscheduleAutoUpdate();
         hideLoadingProgress();
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -255,11 +247,12 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         if (isUpdating()) {
             title = R.string.reader_empty_posts_in_tag_updating;
         } else {
-            int tagIndex = mActionBarAdapter.getIndexOfTagName(mCurrentTag);
+            ReaderActionBarTagAdapter tagAdapter = getActionBarAdapter();
+            int tagIndex = (tagAdapter != null ? tagAdapter.getIndexOfTagName(mCurrentTag) : -1);
 
             final String tagId;
             if (tagIndex > -1) {
-                ReaderTag tag = (ReaderTag) getActionBarAdapter().getItem(tagIndex);
+                ReaderTag tag = (ReaderTag) tagAdapter.getItem(tagIndex);
                 tagId = tag.getStringIdFromEndpoint();
             } else {
                 tagId = "";
@@ -333,7 +326,8 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     };
 
     /*
-     * called by post adapter when user requests to reblog a post
+     * called by post adapter when user requests to reblog a post, or taps user's gravatar to
+     * view all posts in that blog
      */
     ReaderActions.RequestPostNavigationListener mNavigationListener = new ReaderActions.RequestPostNavigationListener() {
         @Override
@@ -343,9 +337,8 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         }
         @Override
         public void onRequestBlogDetail(ReaderPost post) {
-            if (hasActivity() && getActivity() instanceof ReaderActivity) {
-                ReaderActivity activity = (ReaderActivity) getActivity();
-                activity.showPostListFragment(PostListType.BLOG, post.blogId);
+            if (hasActivity() && getPostListType() != PostListType.BLOG) {
+                ReaderActivityLauncher.showReaderPostList(getActivity(), PostListType.BLOG, post.blogId);
             }
         }
     };
@@ -377,6 +370,12 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         return mListType;
     }
 
+    protected void setPostListType(PostListType listType) {
+        if (mListType == listType)
+            return;
+        mListType = listType;
+    }
+
     private boolean isCurrentTagName(String tagName) {
         if (!hasCurrentTag())
             return false;
@@ -396,7 +395,7 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     }
 
     protected void setCurrentBlogId(long blogId) {
-        mListType = PostListType.BLOG;
+        setPostListType(PostListType.BLOG);
         hideLoadingProgress();
         getPostAdapter().setBlogId(blogId);
         hideNewPostsBar();
@@ -406,7 +405,7 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         if (TextUtils.isEmpty(tagName))
             return;
 
-        mListType = PostListType.TAG;
+        setPostListType(PostListType.TAG);
         mCurrentTag = tagName;
         UserPrefs.setReaderTag(tagName);
 
@@ -597,17 +596,21 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     private Handler mAutoUpdateHandler = new Handler();
     private Runnable mAutoUpdateTask = new Runnable() {
         public void run() {
-            if (hasCurrentTag()) {
-                AppLog.d(T.READER, "performing automatic update");
-                updatePostsWithCurrentTag(ReaderActions.RequestDataAction.LOAD_NEWER, ReaderPostListFragment.RefreshType.AUTOMATIC);
+            switch (mListType) {
+                case TAG:
+                    if (hasCurrentTag()) {
+                        AppLog.d(T.READER, "performing automatic update");
+                        updatePostsWithCurrentTag(ReaderActions.RequestDataAction.LOAD_NEWER, RefreshType.AUTOMATIC);
+                    }
+                    break;
+                case BLOG:
+                    updatePostsInCurrentBlog(RefreshType.AUTOMATIC);
+                    break;
             }
         }
     };
 
     public final void scheduleAutoUpdate() {
-        if (!hasCurrentTag())
-            return;
-
         mAutoUpdateHandler.postDelayed(mAutoUpdateTask, 60000 * Constants.READER_AUTO_UPDATE_DELAY_MINUTES);
     }
 
@@ -615,121 +618,23 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         mAutoUpdateHandler.removeCallbacks(mAutoUpdateTask);
     }
 
-    private ActionBar getActionBar() {
-        if (hasActivity() && (getActivity() instanceof SherlockFragmentActivity)) {
-            return ((SherlockFragmentActivity)getActivity()).getSupportActionBar();
+    /*
+     * returns the adapter used by ReaderActivity to display the tag dropdown in the ActionBar
+     */
+    private ReaderActionBarTagAdapter getActionBarAdapter() {
+        if (getActivity() instanceof ReaderActivity) {
+            return ((ReaderActivity)getActivity()).getActionBarAdapter();
         } else {
             return null;
         }
-    }
-    /*
-     * make sure the passed tag is the one selected in the actionbar
-     */
-    protected void selectTagInActionBar(String tagName) {
-        if (!hasActivity())
-            return;
-        if (tagName==null)
-            return;
-
-        ActionBar actionBar = getActionBar();
-        if (actionBar==null)
-            return;
-
-        int position = getActionBarAdapter().getIndexOfTagName(tagName);
-        if (position == -1)
-            return;
-        if (position == actionBar.getSelectedNavigationIndex())
-            return;
-
-        actionBar.setSelectedNavigationItem(position);
-    }
-
-    private void setupActionBar() {
-        ActionBar actionBar = getActionBar();
-        if (actionBar==null)
-            return;
-
-        switch (mListType) {
-            case TAG:
-                actionBar.setDisplayShowTitleEnabled(false);
-                actionBar.setDisplayHomeAsUpEnabled(true);
-                actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-
-                ActionBar.OnNavigationListener navigationListener = new ActionBar.OnNavigationListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(int itemPosition, long itemId) {
-                        ReaderTag tag = (ReaderTag) getActionBarAdapter().getItem(itemPosition);
-                        if (tag!=null) {
-                            setCurrentTag(tag.getTagName());
-                            AppLog.d(T.READER, "tag chosen from actionbar: " + tag.getTagName());
-                        }
-                        return true;
-                    }
-                };
-
-                actionBar.setListNavigationCallbacks(getActionBarAdapter(), navigationListener);
-                break;
-
-            case BLOG:
-                actionBar.setDisplayShowTitleEnabled(true);
-                actionBar.setDisplayHomeAsUpEnabled(true);
-                actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    private ReaderActionBarTagAdapter getActionBarAdapter() {
-        if (mActionBarAdapter == null) {
-            ReaderActions.DataLoadedListener dataListener = new ReaderActions.DataLoadedListener() {
-                @Override
-                public void onDataLoaded(boolean isEmpty) {
-                    selectTagInActionBar(mCurrentTag);
-                }
-            };
-            final boolean isStaticMenuDrawer;
-            if (getActivity() instanceof WPActionBarActivity) {
-                isStaticMenuDrawer = ((WPActionBarActivity)getActivity()).isStaticMenuDrawer();
-            } else {
-                isStaticMenuDrawer = false;
-            }
-            mActionBarAdapter = new ReaderActionBarTagAdapter(getActivity(), isStaticMenuDrawer, dataListener);
-        }
-        return mActionBarAdapter;
-    }
-
-    private boolean hasActionBarAdapter() {
-        return (mActionBarAdapter != null);
     }
 
     /*
      * make sure current tag still exists, reset to default if it doesn't
      */
-    private void checkCurrentTag() {
+    protected void checkCurrentTag() {
         if (hasCurrentTag() && !ReaderTagTable.tagExists(getCurrentTagName()))
             mCurrentTag = ReaderTag.TAG_NAME_DEFAULT;
-    }
-
-    /*
-     * refresh the list of tags shown in the ActionBar
-     */
-    protected void refreshTags() {
-        if (!hasActivity())
-            return;
-        checkCurrentTag();
-        getActionBarAdapter().refreshTags();
-    }
-
-    /*
-     * similar to refreshTags except that the adapter always re-creates its underlying data
-     */
-    protected void reloadTags() {
-        if (!hasActivity())
-            return;
-        checkCurrentTag();
-        getActionBarAdapter().reloadTags();
     }
 
     /*

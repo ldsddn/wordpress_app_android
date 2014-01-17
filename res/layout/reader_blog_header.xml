@@ -4,11 +4,12 @@
     header that appears above post list fragment when viewing posts in a specific blog
 -->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/layout_blog_header"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/reader_post_background"
+    android:orientation="vertical"
     android:padding="@dimen/margin_large">
 
     <org.wordpress.android.widgets.WPTextView
@@ -27,10 +28,8 @@
         style="@style/ReaderTextView.Label.Medium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/text_blog_name"
-        android:layout_marginTop="@dimen/margin_small"
         android:ellipsize="end"
-        android:maxLines="4"
+        android:maxLines="3"
         android:text="text_blog_description" />
 
     <org.wordpress.android.widgets.WPTextView
@@ -38,14 +37,13 @@
         style="@style/ReaderTextView.Label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/text_blog_description"
-        android:layout_marginTop="@dimen/margin_small"
         android:text="Followers" />
 
     <org.wordpress.android.widgets.WPTextView
         android:id="@+id/text_follow_blog"
         style="@style/ReaderTextView.Follow"
-        android:layout_alignParentRight="true"
-        android:layout_alignTop="@+id/text_follow_count" />
+        android:layout_marginBottom="@dimen/margin_extra_small"
+        android:layout_marginTop="@dimen/margin_extra_small" />
 
-</RelativeLayout>
+
+</LinearLayout>

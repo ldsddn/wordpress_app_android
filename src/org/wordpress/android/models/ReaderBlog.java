@@ -5,7 +5,6 @@ import android.text.TextUtils;
 import org.json.JSONObject;
 import org.wordpress.android.util.JSONUtil;
 import org.wordpress.android.util.StringUtils;
-import org.wordpress.android.util.UrlUtils;
 
 /**
  * Created by nbradbury on 16-Jan-2014
@@ -43,8 +42,8 @@ public class ReaderBlog {
             return blog;
 
         blog.blogId = json.optLong("ID");
-        blog.name = JSONUtil.getString(json, "name");
-        blog.description = JSONUtil.getString(json, "description");
+        blog.name = JSONUtil.getStringDecoded(json, "name");
+        blog.description = JSONUtil.getStringDecoded(json, "description");
         blog.url = JSONUtil.getString(json, "URL");
         blog.isJetpack = JSONUtil.getBool(json, "jetpack");
         blog.isPrivate = JSONUtil.getBool(json, "is_private");
