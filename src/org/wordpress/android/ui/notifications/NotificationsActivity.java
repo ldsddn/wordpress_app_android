@@ -104,10 +104,16 @@ public class NotificationsActivity extends WPActionBarActivity implements Commen
             public Fragment getFragment(Note note) {
                 if (note.isMultiLineListTemplate()){
                     Fragment fragment = null;
-                    if (note.isCommentLikeType())
-                        fragment = CommentDetailFragment.newInstance(note);
-                    else if (note.isAutomattcherType())
-                        fragment = new NoteMatcherFragment();
+                    if (note.isCommentLikeType()) {
+                        fragment = new NoteCommentLikeFragment();
+                    } else if (note.isAutomattcherType()) {
+                        boolean isComment = (note.commentId != 0);
+                        if (isComment) {
+                            fragment = CommentDetailFragment.newInstance(note);
+                        } else {
+                            fragment = new NoteMatcherFragment();
+                        }
+                    }
                     return fragment;
                 }
                 return null;
