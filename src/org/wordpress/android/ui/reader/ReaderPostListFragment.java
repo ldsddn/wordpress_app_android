@@ -409,6 +409,7 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         hideLoadingProgress();
         getPostAdapter().setBlogId(blogId);
         hideNewPostsBar();
+        updatePostsInCurrentBlog(RefreshType.AUTOMATIC);
     }
 
     protected void setCurrentTag(String tagName) {
