@@ -27,6 +27,7 @@ public class ReaderBlogTable {
                  + "    url           TEXT,"
                  + "    is_private    INTEGER DEFAULT 0,"
                  + "    is_jetpack    INTEGER DEFAULT 0,"
+                 + "    is_following  INTEGER DEFAULT 0,"
                  + "    num_followers INTEGER DEFAULT 0,"
                  + " PRIMARY KEY (blog_id)"
                  + ")");
@@ -51,12 +52,12 @@ public class ReaderBlogTable {
     }
 
     public static void addOrUpdateBlogs(ReaderBlogList blogs) {
-        if (blogs==null || blogs.size()==0)
+        if (blogs == null || blogs.size() == 0)
             return;
 
         String sql = "INSERT OR REPLACE INTO tbl_blogs"
-                + "   (blog_id, name, description, url, is_private, is_jetpack, num_followers)"
-                + "   VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)";
+                + "   (blog_id, name, description, url, is_private, is_jetpack, is_following, num_followers)"
+                + "   VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)";
         SQLiteDatabase db = ReaderDatabase.getWritableDb();
         db.beginTransaction();
         SQLiteStatement stmt = db.compileStatement(sql);
@@ -68,7 +69,8 @@ public class ReaderBlogTable {
                 stmt.bindString(4, blog.getUrl());
                 stmt.bindLong  (5, SqlUtils.boolToSql(blog.isPrivate));
                 stmt.bindLong  (6, SqlUtils.boolToSql(blog.isJetpack));
-                stmt.bindLong  (7, blog.numSubscribers);
+                stmt.bindLong  (7, SqlUtils.boolToSql(blog.isFollowing));
+                stmt.bindLong  (8, blog.numSubscribers);
                 stmt.execute();
                 stmt.clearBindings();
             }
@@ -82,7 +84,7 @@ public class ReaderBlogTable {
     }
      public static ReaderBlog getBlog(long blogId) {
          String args[] = {Long.toString(blogId)};
-         String sql = "SELECT blog_id, name, description, url, is_private, is_jetpack, num_followers FROM tbl_blogs WHERE blog_id=?";
+         String sql = "SELECT blog_id, name, description, url, is_private, is_jetpack, is_following, num_followers FROM tbl_blogs WHERE blog_id=?";
          Cursor c = ReaderDatabase.getReadableDb().rawQuery(sql, args);
          try {
              if (!c.moveToFirst())
@@ -95,7 +97,8 @@ public class ReaderBlogTable {
              blog.setUrl(c.getString(3));
              blog.isPrivate = SqlUtils.sqlToBool(c.getInt(4));
              blog.isJetpack = SqlUtils.sqlToBool(c.getInt(5));
-             blog.numSubscribers = c.getInt(6);
+             blog.isFollowing = SqlUtils.sqlToBool(c.getInt(6));
+             blog.numSubscribers = c.getInt(7);
 
              return blog;
          } finally {

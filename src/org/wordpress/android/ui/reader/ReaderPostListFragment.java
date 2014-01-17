@@ -204,16 +204,26 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         mBlogHeader.setVisibility(View.GONE);
 
         if (mListType == PostListType.BLOG) {
+            final ProgressBar progress = (ProgressBar) mBlogHeader.findViewById(R.id.progress_blog_header);
             final long blogId = mListTypeId;
+            ReaderBlog blog = ReaderBlogTable.getBlog(blogId);
 
-            // show existing info for this blog (handles null)
-            showBlogInfo(ReaderBlogTable.getBlog(blogId));
+            // show existing info for this blog (if any)
+            if (blog != null) {
+                showBlogInfo(blog);
+            } else {
+                showBlogInfo(null);
+                progress.setVisibility(View.VISIBLE);
+            }
 
             // then request latest info for this blog
             ReaderBlogActions.updateBlog(blogId, new ReaderActions.ActionListener() {
                 @Override
                 public void onActionResult(boolean succeeded) {
-                    if (succeeded && hasActivity())
+                    if (!hasActivity())
+                        return;
+                    progress.setVisibility(View.GONE);
+                    if (succeeded)
                         showBlogInfo(ReaderBlogTable.getBlog(blogId));
                 }
             });
@@ -667,26 +677,31 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     /*
      * show blog header with info from passed blog filled in
      */
-    private void showBlogInfo(ReaderBlog blog) {
-        if (blog == null)
-            return;
-
+    private void showBlogInfo(final ReaderBlog blog) {
         final TextView txtBlogName = (TextView) mBlogHeader.findViewById(R.id.text_blog_name);
         final TextView txtDescription = (TextView) mBlogHeader.findViewById(R.id.text_blog_description);
-        final TextView txtFollowBtn = (TextView) mBlogHeader.findViewById(R.id.text_follow_blog);
         final TextView txtFollowCnt = (TextView) mBlogHeader.findViewById(R.id.text_follow_count);
+        final TextView txtFollowBtn = (TextView) mBlogHeader.findViewById(R.id.text_follow_blog);
 
-        txtBlogName.setText(blog.getName());
-        txtDescription.setText(blog.getDescription());
-        txtDescription.setVisibility(blog.hasDescription() ? View.VISIBLE : View.GONE);
-        String numFollowers = getResources().getString(R.string.reader_label_followers, FormatUtils.formatInt(blog.numSubscribers));
-        txtFollowCnt.setText(numFollowers);
+        if (blog != null) {
+            txtBlogName.setText(blog.getName());
+            txtDescription.setText(blog.getDescription());
+            txtDescription.setVisibility(blog.hasDescription() ? View.VISIBLE : View.GONE);
+            String numFollowers = getResources().getString(R.string.reader_label_followers, FormatUtils.formatInt(blog.numSubscribers));
+            txtFollowCnt.setText(numFollowers);
 
-        boolean isFollowing = ReaderBlogTable.isFollowedBlogUrl(blog.getUrl());
-        showFollowStatus(txtFollowBtn, isFollowing);
+            boolean isFollowing = ReaderBlogTable.isFollowedBlogUrl(blog.getUrl());
+            showFollowStatus(txtFollowBtn, isFollowing);
+            txtFollowBtn.setVisibility(View.VISIBLE);
+        } else {
+            txtBlogName.setText(null);
+            txtDescription.setText(null);
+            txtFollowCnt.setText(null);
+            txtFollowBtn.setVisibility(View.INVISIBLE);
+        }
 
         if (mBlogHeader.getVisibility() != View.VISIBLE)
-            AniUtils.flyIn(mBlogHeader, AniUtils.FlyInStyle.FROM_TOP);
+            AniUtils.fadeIn(mBlogHeader);
     }
 
     /*
@@ -694,9 +709,6 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
      * user is following this blog
      */
     private void showFollowStatus(TextView txtFollow, boolean isFollowed) {
-        if (isFollowed == txtFollow.isSelected())
-            return;
-
         // text for follow button
         String following = getString(R.string.reader_btn_unfollow).toUpperCase();
         String follow = getString(R.string.reader_btn_follow).toUpperCase();

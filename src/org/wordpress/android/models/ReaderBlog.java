@@ -13,6 +13,7 @@ public class ReaderBlog {
     public long blogId;
     public boolean isPrivate;
     public boolean isJetpack;
+    public boolean isFollowing;
     public int numSubscribers;
     private String name;
     private String description;
@@ -47,6 +48,7 @@ public class ReaderBlog {
         blog.url = JSONUtil.getString(json, "URL");
         blog.isJetpack = JSONUtil.getBool(json, "jetpack");
         blog.isPrivate = JSONUtil.getBool(json, "is_private");
+        blog.isFollowing = JSONUtil.getBool(json, "is_following");
         blog.numSubscribers = json.optInt("subscribers_count");
 
         return blog;

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
@@ -40,7 +41,10 @@ import org.wordpress.android.util.ToastUtils;
  * this activity serves as the host for ReaderPostListFragment
  */
 
-public class ReaderActivity extends WPActionBarActivity {
+public class ReaderActivity extends WPActionBarActivity
+                            implements FragmentManager.OnBackStackChangedListener,
+                            ActionBar.OnNavigationListener
+{
     private static final String TAG_FRAGMENT_POST_LIST = "reader_post_list";
     private static final String KEY_INITIAL_UPDATE = "initial_update";
     private static final String KEY_HAS_PURGED = "has_purged";
@@ -66,6 +70,8 @@ public class ReaderActivity extends WPActionBarActivity {
             mHasPerformedInitialUpdate = savedInstanceState.getBoolean(KEY_INITIAL_UPDATE);
             mHasPerformedPurge = savedInstanceState.getBoolean(KEY_HAS_PURGED);
         }
+
+        getSupportFragmentManager().addOnBackStackChangedListener(this);
     }
 
     @Override
@@ -120,6 +126,11 @@ public class ReaderActivity extends WPActionBarActivity {
     }
 
     @Override
+    public void onAttachFragment(Fragment fragment) {
+        super.onAttachFragment(fragment);
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(KEY_INITIAL_UPDATE, mHasPerformedInitialUpdate);
@@ -158,7 +169,7 @@ public class ReaderActivity extends WPActionBarActivity {
                     ReaderPost updatedPost = ReaderPostTable.getPost(blogId, postId);
                     if (updatedPost != null) {
                         readerFragment.reloadPost(updatedPost);
-                        //Update 'following' status on all other posts in the same blog.
+                        // update 'following' status on all other posts in the same blog.
                         if (isBlogFollowStatusChanged) {
                             readerFragment.updateFollowStatusOnPostsForBlog(blogId, updatedPost.isFollowedByCurrentUser);
                         }
@@ -248,19 +259,22 @@ public class ReaderActivity extends WPActionBarActivity {
      * show fragment containing list of latest posts
      */
     protected void showPostListFragment(PostListType listType, long listTypeId) {
-        ReaderPostListFragment currentFragment = getPostListFragment();
         ReaderPostListFragment newFragment = ReaderPostListFragment.newInstance(this, listType, listTypeId);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-        // add this fragment to the backstack if one already exists
-        if (getPostListFragment() != null)
+        // if a fragment already exists, and this one to backstack and provide custom animation
+        if (getPostListFragment() != null) {
             transaction.addToBackStack(null);
+            transaction.setCustomAnimations(R.anim.reader_flyin_from_bottom,
+                                            R.anim.reader_flyout,
+                                            R.anim.reader_flyin_from_bottom,
+                                            R.anim.reader_flyout);
+        }
 
        transaction.add(R.id.fragment_container, newFragment, TAG_FRAGMENT_POST_LIST)
                   .commit();
 
-        if (currentFragment == null || currentFragment.getPostListType() != listType)
-            setupActionBar(listType);
+        setupActionBar(listType);
     }
 
     /*
@@ -340,6 +354,10 @@ public class ReaderActivity extends WPActionBarActivity {
         return mActionBarAdapter;
     }
 
+    private boolean hasActionBarAdapter() {
+        return (mActionBarAdapter != null);
+    }
+
     /*
      * make sure the passed tag is the one selected in the actionbar
      */
@@ -360,46 +378,54 @@ public class ReaderActivity extends WPActionBarActivity {
         actionBar.setSelectedNavigationItem(position);
     }
 
-    private boolean hasActionBarAdapter() {
-        return (mActionBarAdapter != null);
-    }
-
+    private PostListType mPreviousListType = null;
     private void setupActionBar(PostListType listType) {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar == null)
             return;
 
+        if (mPreviousListType != null && mPreviousListType.equals(listType))
+            return;
+
+        mPreviousListType = listType;
+
         switch (listType) {
             case TAG:
                 actionBar.setDisplayShowTitleEnabled(false);
-                actionBar.setDisplayHomeAsUpEnabled(true);
                 actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-
-                ActionBar.OnNavigationListener navigationListener = new ActionBar.OnNavigationListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(int itemPosition, long itemId) {
-                        ReaderTag tag = (ReaderTag) getActionBarAdapter().getItem(itemPosition);
-                        if (tag != null) {
-                            ReaderPostListFragment fragment = getPostListFragment();
-                            if (fragment != null)
-                                fragment.setCurrentTag(tag.getTagName());
-                            AppLog.d(T.READER, "tag chosen from actionbar: " + tag.getTagName());
-                        }
-                        return true;
-                    }
-                };
-
-                actionBar.setListNavigationCallbacks(getActionBarAdapter(), navigationListener);
+                if (!hasActionBarAdapter())
+                    actionBar.setListNavigationCallbacks(getActionBarAdapter(), this);
                 break;
 
             case BLOG:
                 actionBar.setDisplayShowTitleEnabled(true);
-                actionBar.setDisplayHomeAsUpEnabled(false);
                 actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
                 break;
 
             default:
                 break;
         }
+    }
+
+    @Override
+    public void onBackStackChanged() {
+        ReaderPostListFragment fragment = getPostListFragment();
+        if (fragment == null)
+            return;
+        PostListType listType = fragment.getPostListType();
+        setupActionBar(listType);
+    }
+
+    // called when tag selected in the ActionBar dropdown
+    @Override
+    public boolean onNavigationItemSelected(int itemPosition, long itemId) {
+        ReaderTag tag = (ReaderTag) getActionBarAdapter().getItem(itemPosition);
+        if (tag != null) {
+            ReaderPostListFragment fragment = getPostListFragment();
+            if (fragment != null)
+                fragment.setCurrentTag(tag.getTagName());
+            AppLog.d(T.READER, "tag chosen from actionbar: " + tag.getTagName());
+        }
+        return true;
     }
 }
