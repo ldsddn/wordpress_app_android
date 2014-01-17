@@ -70,6 +70,11 @@ public class Note {
     private transient String mIconUrl = null;
     private transient String mTimestamp = null;
 
+    public int blogId;
+    public int postId;
+    public int commentId;
+    public int commentParentId;
+
     /**
      * Create a note using JSON from REST API
      */
@@ -334,9 +339,30 @@ public class Note {
             // pre-load the preview text
             getCommentPreview();
         }
+
         // pre-load the subject and avatar url
         getSubject();
         getIconURL();
+
+        // pre-load site/post/comment IDs
+        preloadMetaIds();
+    }
+
+    /*
+     * nbradbury 17-Jan-2014 - preload the blog, post, & comment IDs from the meta section
+     * ids={"site":61509427,"self":993925505,"post":161,"comment":178,"comment_parent":0}
+     */
+    private void preloadMetaIds() {
+        JSONObject jsonMeta = getJSONMeta();
+        if (jsonMeta == null)
+            return;
+        JSONObject jsonIDs = jsonMeta.optJSONObject("ids");
+        if (jsonIDs == null)
+            return;
+        blogId = jsonIDs.optInt("site");
+        postId = jsonIDs.optInt("post");
+        commentId = jsonIDs.optInt("comment");
+        commentParentId = jsonIDs.optInt("comment_parent");
     }
 
     protected Object queryJSON(String query){

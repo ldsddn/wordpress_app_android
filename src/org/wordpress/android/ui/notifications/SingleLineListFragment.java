@@ -59,7 +59,7 @@ public class SingleLineListFragment extends ListFragment implements Notification
             noteHeader.setUrl(footerUrl);
             noteHeader.setClickable(true);
         }
-        
+
         list.addHeaderView(noteHeader);
         
         // set the adapter

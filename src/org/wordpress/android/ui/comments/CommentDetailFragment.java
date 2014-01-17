@@ -48,7 +48,6 @@ import org.wordpress.android.util.VolleyUtils;
 import org.wordpress.android.util.WPLinkMovementMethod;
 
 import java.util.EnumSet;
-import java.util.Map;
 
 /**
  * Created by nbradbury on 11/11/13.
@@ -596,37 +595,19 @@ public class CommentDetailFragment extends Fragment implements NotificationFragm
          */
         mEnabledActions = note.getEnabledActions();
 
-        /*
-         * in order to get the actual comment from a notification we need to extract the
-         * blogId/postId/commentId from the notification, and this info is buried in the
-         * actions array of the note's JSON. each action entry contains a "params"
-         * array which contains these IDs, so find the first action then extract the IDs
-         * from its params
-         */
-        Map<String,JSONObject> actions = note.getActions();
-        if (actions.size() > 0) {
-            String firstKey = actions.keySet().iterator().next();
-            JSONObject jsonAction = actions.get(firstKey);
-            JSONObject jsonParams = jsonAction.optJSONObject("params");
-            if (jsonParams != null) {
-                mRemoteBlogId = jsonParams.optInt("blog_id");
-                int commentId = jsonParams.optInt("comment_id");
+        mRemoteBlogId = note.blogId;
+        int commentId = note.commentId;
 
-                // note that the local blog id won't be found if the comment is from someone else's blog
-                int localBlogId = WordPress.wpDB.getLocalTableBlogIdForRemoteBlogId(mRemoteBlogId);
+        // note that the local blog id won't be found if the comment is from someone else's blog
+        int localBlogId = WordPress.wpDB.getLocalTableBlogIdForRemoteBlogId(mRemoteBlogId);
 
-                // first try to get from local db, if that fails request it from the server
-                Comment comment = WordPress.wpDB.getComment(localBlogId, commentId);
-                if (comment != null) {
-                    comment.setProfileImageUrl(note.getIconURL());
-                    setComment(localBlogId, comment);
-                } else {
-                    requestComment(localBlogId, mRemoteBlogId, commentId, note.getIconURL());
-                }
-            }
+        // first try to get from local db, if that fails request it from the server
+        Comment comment = WordPress.wpDB.getComment(localBlogId, commentId);
+        if (comment != null) {
+            comment.setProfileImageUrl(note.getIconURL());
+            setComment(localBlogId, comment);
         } else {
-            if (hasActivity())
-                ToastUtils.showToast(getActivity(), R.string.reader_toast_err_get_comment, ToastUtils.Duration.LONG);
+            requestComment(localBlogId, mRemoteBlogId, commentId, note.getIconURL());
         }
     }
 

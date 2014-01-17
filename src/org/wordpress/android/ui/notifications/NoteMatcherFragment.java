@@ -61,8 +61,8 @@ public class NoteMatcherFragment extends Fragment implements NotificationFragmen
         String itemURL = JSONUtil.getString(bodyObject, "header_link");
         if (!itemURL.equals("")) {
             noteFooter.setUrl(itemURL);
-        }            
-        
+        }
+
         return view;
     }
     

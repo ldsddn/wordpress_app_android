@@ -31,6 +31,7 @@ import org.wordpress.android.models.Note;
 import org.wordpress.android.ui.WPActionBarActivity;
 import org.wordpress.android.ui.comments.CommentActions;
 import org.wordpress.android.ui.comments.CommentDetailFragment;
+import org.wordpress.android.ui.reader.ReaderActivityLauncher;
 import org.wordpress.android.ui.reader.actions.ReaderAuthActions;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.AppLog.T;
@@ -92,7 +93,6 @@ public class NotificationsActivity extends WPActionBarActivity implements Commen
             @Override
             public Fragment getFragment(Note note){
                 if (note.isCommentType()) {
-                    //Fragment fragment = new NoteCommentFragment();
                     Fragment fragment = CommentDetailFragment.newInstance(note);
                     return fragment;
                 }
@@ -105,7 +105,7 @@ public class NotificationsActivity extends WPActionBarActivity implements Commen
                 if (note.isMultiLineListTemplate()){
                     Fragment fragment = null;
                     if (note.isCommentLikeType())
-                        fragment = new NoteCommentLikeFragment();
+                        fragment = CommentDetailFragment.newInstance(note);
                     else if (note.isAutomattcherType())
                         fragment = new NoteMatcherFragment();
                     return fragment;
@@ -297,12 +297,20 @@ public class NotificationsActivity extends WPActionBarActivity implements Commen
                 }
             );
         }
-        
+
+        // nbradbury - if this is a matcher for a post, show the post in the native reader
+        boolean isPost = (note.commentId == 0 && note.postId != 0 && note.blogId != 0);
+        if (note.isAutomattcherType() && isPost) {
+            ReaderActivityLauncher.showReaderPostDetail(this, note.blogId, note.postId);
+            return;
+        }
+
         FragmentManager fm = getSupportFragmentManager();
         // remove the note detail if it's already on there
         if (fm.getBackStackEntryCount() > 0){
             fm.popBackStack();
         }
+
         Fragment fragment = fragmentForNote(note);
         if (fragment == null) {
             AppLog.d(T.NOTIFS, String.format("No fragment found for %s", note.toJSONObject()));
