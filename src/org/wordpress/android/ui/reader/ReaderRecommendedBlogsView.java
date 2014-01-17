@@ -4,7 +4,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
-import org.wordpress.android.models.RecommendedBlog;
+import org.wordpress.android.models.ReaderRecommendedBlog;
 
 import java.util.ArrayList;
 
@@ -13,7 +13,7 @@ import java.util.ArrayList;
  */
 public class ReaderRecommendedBlogsView extends LinearLayout {
 
-    private ArrayList<RecommendedBlog> mRecommendedBlogs;
+    private ArrayList<ReaderRecommendedBlog> mRecommendedBlogs;
 
     public ReaderRecommendedBlogsView(Context context) {
         super(context);
@@ -23,11 +23,11 @@ public class ReaderRecommendedBlogsView extends LinearLayout {
         super(context, attrs);
     }
 
-    public ArrayList<RecommendedBlog> getRecommendedBlogs() {
+    public ArrayList<ReaderRecommendedBlog> getRecommendedBlogs() {
         return mRecommendedBlogs;
     }
 
-    public void setRecommendedBlogs(ArrayList<RecommendedBlog> recommendedBlogs) {
+    public void setRecommendedBlogs(ArrayList<ReaderRecommendedBlog> recommendedBlogs) {
         this.mRecommendedBlogs = recommendedBlogs;
     }
 

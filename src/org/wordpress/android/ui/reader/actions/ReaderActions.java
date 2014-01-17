@@ -2,7 +2,7 @@ package org.wordpress.android.ui.reader.actions;
 
 import org.wordpress.android.models.ReaderComment;
 import org.wordpress.android.models.ReaderPost;
-import org.wordpress.android.models.RecommendedBlog;
+import org.wordpress.android.models.ReaderRecommendedBlog;
 
 import java.util.ArrayList;
 
@@ -75,7 +75,7 @@ public class ReaderActions {
      * Used by post list to show 'Recommended Blogs' card
      */
     public interface RecommendedBlogsListener {
-        public void onRecommendedBlogsResult(ArrayList<RecommendedBlog> recommendedBlogs);
+        public void onRecommendedBlogsResult(ArrayList<ReaderRecommendedBlog> recommendedBlogs);
     }
 
 }

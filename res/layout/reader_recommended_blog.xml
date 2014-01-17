@@ -2,13 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:id="@+id/recommended_blog_layout"
+    android:clickable="true"
+    android:background="@drawable/selectable_background_wordpress">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/selectable_background_wordpress"
-        android:clickable="true"
         android:paddingTop="@dimen/margin_large"
         android:paddingBottom="@dimen/margin_large"
         android:orientation="horizontal"

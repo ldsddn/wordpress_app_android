@@ -2,6 +2,7 @@ package org.wordpress.android.models;
 
 import android.net.Uri;
 import android.text.TextUtils;
+import android.view.View;
 
 import org.json.JSONObject;
 import org.wordpress.android.util.DateTimeUtils;
@@ -51,7 +52,8 @@ public class ReaderPost {
     public boolean isExternal;
     public boolean isPrivate;
     public boolean isVideoPress;
-    public boolean isRecommendedBlog;
+
+    private ArrayList<ReaderRecommendedBlog> mRecommendedBlogs;
 
     public static ReaderPost fromJson(JSONObject json) {
         if (json==null)
@@ -482,6 +484,14 @@ public class ReaderPost {
 
     public List<String> getTagList() {
         return Arrays.asList(getTags().split(","));
+    }
+
+    public ArrayList<ReaderRecommendedBlog> getRecommendedBlogs() {
+        return mRecommendedBlogs;
+    }
+
+    public void setRecommendedBlogs(ArrayList<ReaderRecommendedBlog> recommendedBlogs) {
+        this.mRecommendedBlogs = recommendedBlogs;
     }
 
     // --------------------------------------------------------------------------------------------

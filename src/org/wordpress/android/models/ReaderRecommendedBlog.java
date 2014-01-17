@@ -7,7 +7,7 @@ import org.wordpress.android.util.JSONUtil;
  * Created by dan on 1/15/14.
  * For recommended blogs returned in read/recommended/mine
  */
-public class RecommendedBlog {
+public class ReaderRecommendedBlog {
 
     private long blogId;
     private long recommendationId;
@@ -17,10 +17,10 @@ public class RecommendedBlog {
     private String blogTitle;
     private String reason;
 
-    public static RecommendedBlog fromJson(JSONObject json) {
+    public static ReaderRecommendedBlog fromJson(JSONObject json) {
         if (json==null)
             throw new IllegalArgumentException("null json recommended post");
-        RecommendedBlog recommendedBlog = new RecommendedBlog();
+        ReaderRecommendedBlog recommendedBlog = new ReaderRecommendedBlog();
 
         recommendedBlog.setBlogId(json.optLong("blog_id"));
         recommendedBlog.setRecommendationId(json.optLong("follow_reco_id"));
