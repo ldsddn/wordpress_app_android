@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.BaseAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,7 +19,9 @@ import android.widget.Toast;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.wordpress.rest.RestRequest;
 
+import org.json.JSONObject;
 import org.wordpress.android.Constants;
 import org.wordpress.android.R;
 import org.wordpress.android.WordPress;
@@ -72,6 +75,7 @@ public class ReaderPostAdapter extends BaseAdapter {
     private boolean mEnableImagePreload;
     private int mLastPreloadPos = -1;
     private static final int PRELOAD_OFFSET = 2;
+    private int mLastRequestedViewPosition;
 
     private Context mContext;
 
@@ -210,6 +214,7 @@ public class ReaderPostAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
+        mLastRequestedViewPosition = position;
         final ReaderPost post = (ReaderPost) getItem(position);
         final PostViewHolder holder;
         if (convertView == null) {
@@ -281,7 +286,7 @@ public class ReaderPostAdapter extends BaseAdapter {
             if (readerRecommendedBlogsView.getChildCount() > 1) {
                 readerRecommendedBlogsView.removeViews(1, readerRecommendedBlogsView.getChildCount() - 1);
             }
-            // Build the recommended blogs card view
+            // Add the recommended blogs to the card
             for (int i = 0; i < recommendedBlogs.size(); i++) {
                 ReaderRecommendedBlog recommendedBlog = recommendedBlogs.get(i);
                 View recommendedBlogView = ((Activity)mContext).getLayoutInflater().inflate(R.layout.reader_recommended_blog, null);
@@ -295,6 +300,10 @@ public class ReaderPostAdapter extends BaseAdapter {
 
                     WPTextView titleTextView = (WPTextView) recommendedBlogView.findViewById(R.id.recommended_blog_title);
                     titleTextView.setText(recommendedBlog.getBlogTitle());
+
+                    ImageButton followButton = (ImageButton) recommendedBlogView.findViewById(R.id.follow_button);
+                    followButton.setOnClickListener(mRecommendedBlogFollowClickListener);
+                    followButton.setTag(recommendedBlog.getBlogId());
 
                     WPTextView reasonTextView = (WPTextView) recommendedBlogView.findViewById(R.id.recommended_blog_reason);
                     reasonTextView.setText(recommendedBlog.getReason());
@@ -410,6 +419,24 @@ public class ReaderPostAdapter extends BaseAdapter {
             if (v.getTag() instanceof Long) {
                 long blogId = (Long)v.getTag();
                 Toast.makeText(mContext, "Clicked blogId: " + blogId, Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+
+    private ImageButton.OnClickListener mRecommendedBlogFollowClickListener = new ImageButton.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            final ImageButton followButton = (ImageButton) v;
+            followButton.setImageResource(R.drawable.follow_minus);
+            if (followButton.getTag() instanceof Long) {
+                WordPress.restClient.followSite(String.valueOf(followButton.getTag()), null, new RestRequest.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        if (mContext != null)
+                            followButton.setImageResource(R.drawable.follow_plus);
+                    }
+                }
+                );
             }
         }
     };
@@ -613,10 +640,6 @@ public class ReaderPostAdapter extends BaseAdapter {
         }
     };
 
-    /**
-     * Recommended blogs
-     */
-
     /*
      * Get a new Recommended Blogs card to add to the reader list
      */
@@ -629,9 +652,17 @@ public class ReaderPostAdapter extends BaseAdapter {
                 if (scrollPosition >= mPosts.size())
                     return;
 
-                ReaderPost post = mPosts.get(scrollPosition);
-                post.setRecommendedBlogs(recommendedBlogs);
-                notifyDataSetChanged();
+                // Insert the card below where the user is currently reading, if possible
+                // TODO: mLastRequestedViewPosition might not be so reliable
+                if (scrollPosition < mLastRequestedViewPosition) {
+                    if ((mLastRequestedViewPosition + 5) <= getCount()) {
+                        int positionToInsert = mLastRequestedViewPosition + 5;
+                        ReaderPost post = mPosts.get(positionToInsert);
+                        post.setRecommendedBlogs(recommendedBlogs);
+                        notifyDataSetChanged();
+                    }
+                }
+
             }
         });
     }
