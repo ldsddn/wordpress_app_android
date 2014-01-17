@@ -9,6 +9,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -713,7 +715,7 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         }
 
         if (mBlogHeader.getVisibility() != View.VISIBLE)
-            AniUtils.fadeIn(mBlogHeader);
+            mBlogHeader.setVisibility(View.VISIBLE);
     }
 
     /*
@@ -740,7 +742,6 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
      * user is following this blog
      */
     private void showBlogFollowStatus(TextView txtFollow, boolean isFollowed) {
-        // text for follow button
         String following = getString(R.string.reader_btn_unfollow).toUpperCase();
         String follow = getString(R.string.reader_btn_follow).toUpperCase();
 

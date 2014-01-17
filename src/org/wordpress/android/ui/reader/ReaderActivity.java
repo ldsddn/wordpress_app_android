@@ -13,6 +13,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 
 import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
@@ -202,14 +203,26 @@ public class ReaderActivity extends WPActionBarActivity
     @Override
     public boolean onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu) {
         super.onCreateOptionsMenu(menu);
+
         MenuInflater inflater = getSupportMenuInflater();
         inflater.inflate(R.menu.reader_native, menu);
+
         mRefreshMenuItem = menu.findItem(R.id.menu_refresh);
         if (shouldAnimateRefreshButton) {
             shouldAnimateRefreshButton = false;
             startAnimatingRefreshButton(mRefreshMenuItem);
         }
+
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        // only show tag item when viewing posts with a specific tag
+        MenuItem mnuTags = menu.findItem(R.id.menu_tags);
+        if (mnuTags != null)
+            mnuTags.setVisible(getCurrentPostListType() == PostListType.TAG);
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -275,6 +288,7 @@ public class ReaderActivity extends WPActionBarActivity
                   .commit();
 
         setupActionBar(listType);
+        invalidateOptionsMenu();
     }
 
     /*
@@ -299,6 +313,13 @@ public class ReaderActivity extends WPActionBarActivity
         if (fragment == null)
             return null;
         return ((ReaderPostListFragment) fragment);
+    }
+
+    protected PostListType getCurrentPostListType() {
+        ReaderPostListFragment fragment = getPostListFragment();
+        if (fragment == null)
+            return PostListType.TAG;
+        return fragment.getPostListType();
     }
 
     /*
@@ -409,11 +430,8 @@ public class ReaderActivity extends WPActionBarActivity
 
     @Override
     public void onBackStackChanged() {
-        ReaderPostListFragment fragment = getPostListFragment();
-        if (fragment == null)
-            return;
-        PostListType listType = fragment.getPostListType();
-        setupActionBar(listType);
+        setupActionBar(getCurrentPostListType());
+        invalidateOptionsMenu();
     }
 
     // called when tag selected in the ActionBar dropdown
