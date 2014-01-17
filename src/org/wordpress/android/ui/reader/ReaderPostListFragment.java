@@ -683,6 +683,7 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
         final TextView txtDescription = (TextView) mBlogHeader.findViewById(R.id.text_blog_description);
         final TextView txtFollowCnt = (TextView) mBlogHeader.findViewById(R.id.text_follow_count);
         final TextView txtFollowBtn = (TextView) mBlogHeader.findViewById(R.id.text_follow_blog);
+        final View divider = mBlogHeader.findViewById(R.id.divider_blog_header);
 
         if (blog != null) {
             txtBlogName.setText(blog.getName());
@@ -694,11 +695,13 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
             boolean isFollowing = ReaderBlogTable.isFollowedBlogUrl(blog.getUrl());
             showFollowStatus(txtFollowBtn, isFollowing);
             txtFollowBtn.setVisibility(View.VISIBLE);
+            divider.setVisibility(View.VISIBLE);
         } else {
             txtBlogName.setText(null);
             txtDescription.setText(null);
             txtFollowCnt.setText(null);
             txtFollowBtn.setVisibility(View.INVISIBLE);
+            divider.setVisibility(View.INVISIBLE);
         }
 
         if (mBlogHeader.getVisibility() != View.VISIBLE)

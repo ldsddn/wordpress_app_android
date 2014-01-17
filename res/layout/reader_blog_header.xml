@@ -25,19 +25,27 @@
 
     <org.wordpress.android.widgets.WPTextView
         android:id="@+id/text_blog_description"
-        android:layout_below="@+id/text_blog_name"
         style="@style/ReaderTextView.Label.Medium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/text_blog_name"
         android:ellipsize="end"
         android:maxLines="3"
         android:text="text_blog_description" />
 
+    <View
+        android:id="@+id/divider_blog_header"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@+id/text_blog_description"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:layout_marginTop="@dimen/margin_large"
+        android:background="@color/reader_divider_blue" />
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/text_blog_description"
-        android:layout_marginBottom="@dimen/margin_small">
+        android:layout_below="@+id/divider_blog_header">
 
         <org.wordpress.android.widgets.WPTextView
             android:id="@+id/text_follow_count"
@@ -55,10 +63,10 @@
     </RelativeLayout>
 
     <ProgressBar
+        android:id="@+id/progress_blog_header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:visibility="gone"
-        android:id="@+id/progress_blog_header" />
+        android:visibility="gone" />
 
 </RelativeLayout>
