@@ -24,6 +24,7 @@ import com.wordpress.rest.RestRequest;
 import org.wordpress.android.Constants;
 import org.wordpress.android.R;
 import org.wordpress.android.WordPress;
+import org.wordpress.android.datasets.ReaderBlogTable;
 import org.wordpress.android.datasets.ReaderPostTable;
 import org.wordpress.android.models.ReaderPost;
 import org.wordpress.android.models.ReaderPostList;
@@ -577,6 +578,8 @@ public class ReaderPostAdapter extends BaseAdapter {
                 notifyDataSetChanged();
             }
 
+            if (mLastRequestedViewPosition == THRESHOLD)
+
             if (mDataLoadedListener!=null)
                 mDataLoadedListener.onDataLoaded(isEmpty());
 
@@ -638,6 +641,20 @@ public class ReaderPostAdapter extends BaseAdapter {
             AppLog.e(T.READER, volleyError);
         }
     };
+
+    /*
+     * Load the 3 latest recommended blogs if we have them stored locally
+     */
+    public void fetchLocalRecommendedBlogs() {
+        ArrayList<ReaderRecommendedBlog> readerRecommendedBlogs = ReaderBlogTable.getLatestRecommendedBlogs();
+        if (readerRecommendedBlogs != null && readerRecommendedBlogs.size() == 3) {
+            if (mPosts.size() > 3) {
+                ReaderPost readerPost = mPosts.get(3);
+                readerPost.setRecommendedBlogs(readerRecommendedBlogs);
+                notifyDataSetChanged();
+            }
+        }
+    }
 
     /*
      * Get a new Recommended Blogs card to add to the reader list

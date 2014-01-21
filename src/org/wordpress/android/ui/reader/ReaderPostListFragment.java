@@ -48,7 +48,7 @@ import org.wordpress.android.util.StringUtils;
  */
 public class ReaderPostListFragment extends Fragment implements AbsListView.OnScrollListener {
 
-    private static final int SHOW_RECOMMENDEND_BLOGS_THRESHOLD = 20;
+    private static final int SHOW_RECOMMENDED_BLOGS_THRESHOLD = 20;
 
     private ReaderPostAdapter mPostAdapter;
     private ReaderActionBarTagAdapter mActionBarAdapter;
@@ -68,7 +68,7 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     private ListView mListView;
 
 
-    private int mLastRecommendedBlogsPosition = SHOW_RECOMMENDEND_BLOGS_THRESHOLD;
+    private int mLastRecommendedBlogsPosition = SHOW_RECOMMENDED_BLOGS_THRESHOLD;
 
     protected static enum RefreshType {AUTOMATIC, MANUAL};
 
@@ -639,12 +639,12 @@ public class ReaderPostListFragment extends Fragment implements AbsListView.OnSc
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
         // Sort out if we should load a new recommended blogs card
         int lastVisiblePosition = mListView.getLastVisiblePosition();
-        if (mLastRecommendedBlogsPosition == SHOW_RECOMMENDEND_BLOGS_THRESHOLD || lastVisiblePosition - mLastRecommendedBlogsPosition > SHOW_RECOMMENDEND_BLOGS_THRESHOLD) {
+        if (mLastRecommendedBlogsPosition == SHOW_RECOMMENDED_BLOGS_THRESHOLD ||
+                lastVisiblePosition - mLastRecommendedBlogsPosition > SHOW_RECOMMENDED_BLOGS_THRESHOLD) {
             if (lastVisiblePosition + 5 < mListView.getCount()) {
                 getPostAdapter().requestNewRecommendedBlogs(lastVisiblePosition);
                 mLastRecommendedBlogsPosition = lastVisiblePosition;
             }
         }
-
     }
 }

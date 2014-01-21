@@ -12,6 +12,7 @@ import org.wordpress.android.models.ReaderUserList;
 import org.wordpress.android.util.SqlUtils;
 import org.wordpress.android.util.UrlUtils;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -27,7 +28,7 @@ public class ReaderBlogTable {
         db.execSQL("CREATE TABLE tbl_blog_urls ("
                 + "	blog_url        TEXT COLLATE NOCASE PRIMARY KEY,"
                 + " is_followed     INTEGER DEFAULT 0)");
-        
+
         db.execSQL("CREATE TABLE tbl_recommended_blogs ("
                 + "	blog_id             INTEGER PRIMARY KEY,"
                 + "	recommendation_id   INTEGER DEFAULT 0,"
@@ -148,6 +149,44 @@ public class ReaderBlogTable {
         }
 
         return blogIds;
+    }
+
+    private static final int COL_BLOG_ID = 0;
+    private static final int COL_RECOMMENDATION_ID = 1;
+    private static final int COL_FOLLOW_SOURCE = 2;
+    private static final int COL_GRAVATAR_URL = 3;
+    private static final int COL_BLOG_URL = 4;
+    private static final int COL_BLOG_TITLE = 5;
+    private static final int COL_REASON = 5;
+
+    /*
+     * Retrieves the 3 latest recommended blog entries
+     */
+    public static ArrayList<ReaderRecommendedBlog> getLatestRecommendedBlogs() {
+
+        ArrayList<ReaderRecommendedBlog> readerRecommendedBlogs = new ArrayList<ReaderRecommendedBlog>();
+
+        String sql = "SELECT * from tbl_recommended_blogs DESC LIMIT 3";
+
+        Cursor c = ReaderDatabase.getReadableDb().rawQuery(sql, null);
+        try {
+            while (c.moveToNext()) {
+                ReaderRecommendedBlog recommendedBlog = new ReaderRecommendedBlog();
+                recommendedBlog.setBlogId(c.getLong(COL_BLOG_ID));
+                recommendedBlog.setBlogId(c.getLong(COL_RECOMMENDATION_ID));
+                recommendedBlog.setFollowSource(c.getString(COL_FOLLOW_SOURCE));
+                recommendedBlog.setGravatarUrl(c.getString(COL_GRAVATAR_URL));
+                recommendedBlog.setBlogUrl(c.getString(COL_BLOG_URL));
+                recommendedBlog.setBlogTitle(c.getString(COL_BLOG_TITLE));
+                recommendedBlog.setReason(c.getString(COL_REASON));
+
+                readerRecommendedBlogs.add(recommendedBlog);
+            }
+        } finally {
+            SqlUtils.closeCursor(c);
+        }
+
+        return readerRecommendedBlogs;
     }
 
 }
