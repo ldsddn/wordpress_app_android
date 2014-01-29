@@ -8,6 +8,10 @@ import org.wordpress.android.util.AppLog.T;
 import org.wordpress.android.util.StringUtils;
 
 import java.io.Serializable;
+
+import android.text.format.DateUtils;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
@@ -15,7 +19,7 @@ public class Post implements Serializable {
 
     // Increment this value if this model changes
     // See: http://www.javapractices.com/topic/TopicAction.do?Id=45
-    static final long serialVersionUID  = 1L;
+    static final long serialVersionUID = 1L;
 
     public static String QUICK_MEDIA_TYPE_PHOTO = "QuickPhoto";
     public static String QUICK_MEDIA_TYPE_VIDEO = "QuickVideo";
@@ -26,6 +30,7 @@ public class Post implements Serializable {
     private String custom_fields;
     private long dateCreated;
     private long date_created_gmt;
+    private String formattedDate;
     private String description;
     private String link;
     private boolean mt_allow_comments;
@@ -66,6 +71,7 @@ public class Post implements Serializable {
             this.title = postVals.get(3).toString();
             this.dateCreated = (Long) postVals.get(4);
             this.date_created_gmt = (Long) postVals.get(5);
+            setFormattedDate();
             this.categories = postVals.get(6).toString();
             this.custom_fields = postVals.get(7).toString();
             this.description = postVals.get(8).toString();
@@ -100,13 +106,13 @@ public class Post implements Serializable {
 
     public Post(int blogId, boolean isPage) {
         // creates a new, empty post for the passed in blogId
-        this(blogId, "", "", "", "", 0, "", "", "","", 0, 0, isPage, "", false);
+        this(blogId, "", "", "", "", 0, "", "", "", "", 0, 0, isPage, "", false);
         this.localDraft = true;
         save();
     }
 
     public Post(int blog_id, String title, String content, String excerpt, String picturePaths, long date, String categories, String tags, String status,
-            String password, double latitude, double longitude, boolean isPage, String postFormat, boolean isLocalChange) {
+                String password, double latitude, double longitude, boolean isPage, String postFormat, boolean isLocalChange) {
         this.blogID = blog_id;
         this.title = title;
         this.description = content;
@@ -142,6 +148,14 @@ public class Post implements Serializable {
 
     public void setDate_created_gmt(long dateCreatedGmt) {
         date_created_gmt = dateCreatedGmt;
+    }
+
+    public String getFormattedDate() {
+        return formattedDate;
+    }
+
+    public void setFormattedDate() {
+        formattedDate = DateUtils.getRelativeTimeSpanString(getDate_created_gmt(), new Date().getTime(), DateUtils.SECOND_IN_MILLIS).toString();
     }
 
     public int getBlogID() {
@@ -468,6 +482,7 @@ public class Post implements Serializable {
     /**
      * Get the entire post content
      * Joins description and mt_text_more fields if both are valid
+     *
      * @return post content as String
      */
     public String getContent() {

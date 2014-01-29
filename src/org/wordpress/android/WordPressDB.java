@@ -22,6 +22,7 @@ import org.wordpress.android.models.Comment;
 import org.wordpress.android.models.MediaFile;
 import org.wordpress.android.models.Note;
 import org.wordpress.android.models.Post;
+import org.wordpress.android.models.PostsListPost;
 import org.wordpress.android.models.Theme;
 import org.wordpress.android.ui.posts.EditPostActivity;
 import org.wordpress.android.util.AppLog;
@@ -892,6 +893,35 @@ public class WordPressDB {
         return (returnValue);
     }
 
+    public List<PostsListPost> getPostsListPosts(int blogID, boolean loadPages) {
+
+        List<PostsListPost> posts = new ArrayList<PostsListPost>();
+        Cursor c;
+        c = db.query(POSTS_TABLE,
+                    new String[] { "id", "blogID", "title",
+                            "date_created_gmt", "post_status" },
+                    "blogID=? AND isPage=?",
+                    new String[] {String.valueOf(blogID), (loadPages) ? "1" : "0"}, null, null, "localDraft DESC, date_created_gmt DESC");
+        int numRows = c.getCount();
+        c.moveToFirst();
+
+        for (int i = 0; i < numRows; ++i) {
+            if (c.getString(0) != null) {
+                PostsListPost post = new PostsListPost(c.getInt(0), c.getInt(1), c.getString(2), c.getLong(3), c.getString(4));
+                posts.add(i, post);
+            }
+            c.moveToNext();
+        }
+        c.close();
+
+        if (numRows == 0) {
+            posts = null;
+        }
+
+        return posts;
+    }
+
+
     public long savePost(Post post, int blogID) {
         long returnValue = -1;
         if (post != null) {
@@ -1612,7 +1642,7 @@ public class WordPressDB {
             }
             mediaIdsStr = mediaIdsStr.subSequence(0, mediaIdsStr.length() - 1) + ")";
         }
-        
+
         return db.rawQuery("SELECT id as _id, * FROM " + MEDIA_TABLE + " WHERE blogId=? AND mediaId <> '' AND "
                 + "(uploadState IS NULL OR uploadState IN ('uploaded', 'queued', 'failed', 'uploading')) AND mimeType LIKE ? " + mediaIdsStr + " ORDER BY (uploadState=?) DESC, date_created_gmt DESC", new String[] { blogId, "image%", "uploading" });
     }
@@ -1706,9 +1736,9 @@ public class WordPressDB {
         else values.put("uploadState", uploadState);
         
         if (mediaId == null) {
-            db.update(MEDIA_TABLE, values, "blogId=? AND (uploadState IS NULL OR uploadState ='uploaded')", new String[] { blogId });
+            db.update(MEDIA_TABLE, values, "blogId=? AND (uploadState IS NULL OR uploadState ='uploaded')", new String[]{blogId});
         } else {
-            db.update(MEDIA_TABLE, values, "blogId=? AND mediaId=?", new String[] { blogId, mediaId });            
+            db.update(MEDIA_TABLE, values, "blogId=? AND mediaId=?", new String[]{blogId, mediaId});
         }
     }
     
@@ -1760,7 +1790,7 @@ public class WordPressDB {
         
         ContentValues values = new ContentValues();
         values.putNull("uploadState");
-        db.update(MEDIA_TABLE, values, "blogId=? AND uploadState=?", new String[] { blogId, "uploaded" });
+        db.update(MEDIA_TABLE, values, "blogId=? AND uploadState=?", new String[]{blogId, "uploaded"});
     }
 
     /** Delete a media item from a blog locally **/
@@ -1872,7 +1902,7 @@ public class WordPressDB {
     public Cursor getThemesNewest(String blogId) {
         return db.rawQuery("SELECT _id, themeId, name, screenshotURL, isCurrent, isPremium FROM " + THEMES_TABLE + " WHERE blogId=? ORDER BY launchDate DESC", new String[] { blogId });
     }
-    
+
     /*public Cursor getThemesPremium(String blogId) {
         return db.rawQuery("SELECT _id, themeId, name, screenshotURL, isCurrent, isPremium FROM " + THEMES_TABLE + " WHERE blogId=? AND price > 0 ORDER BY name ASC", new String[] { blogId });
     }
