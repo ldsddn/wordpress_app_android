@@ -135,7 +135,6 @@
                     android:tint="@color/nux_eye_icon_color"/>
             </RelativeLayout>
 
-
             <RelativeLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"

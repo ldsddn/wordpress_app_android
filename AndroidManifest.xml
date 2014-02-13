@@ -55,13 +55,15 @@
             android:windowSoftInputMode="adjustPan" />
         <activity android:name=".ui.accounts.NewAccountActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:theme="@style/Theme.Sherlock"
             android:windowSoftInputMode="adjustPan"/>
         <activity
             android:name=".ui.accounts.NewBlogActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ui.accounts.NuxHelpActivity"/>
+        <activity android:name=".ui.accounts.NuxOtpActivity"
+                  android:configChanges="orientation|keyboardHidden|screenSize"
+                  android:windowSoftInputMode="adjustPan"/>
 
         <!-- Preferences activities -->
         <activity android:name=".ui.prefs.AboutActivity" />
