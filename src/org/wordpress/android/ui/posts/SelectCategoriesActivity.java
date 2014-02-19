@@ -25,6 +25,8 @@ import org.wordpress.android.models.Blog;
 import org.wordpress.android.models.CategoryNode;
 import org.wordpress.android.util.ListScrollPositionManager;
 import org.wordpress.android.util.StringUtils;
+
+import org.xmlrpc.android.ApiHelper;
 import org.xmlrpc.android.XMLRPCClient;
 import org.xmlrpc.android.XMLRPCException;
 
@@ -192,6 +194,8 @@ public class SelectCategoriesActivity extends SherlockListActivity {
         Object[] params = { blog.getRemoteBlogId(), blog.getUsername(), blog.getPassword(), };
         client = new XMLRPCClient(blog.getUrl(), blog.getHttpuser(), blog.getHttppassword());
 
+        ApiHelper.addAuthorizationHeaderIfNeeded(blog, client);
+        
         boolean success = false;
 
         try {
@@ -248,6 +252,8 @@ public class SelectCategoriesActivity extends SherlockListActivity {
 
         Object[] params = { blog.getRemoteBlogId(), blog.getUsername(), blog.getPassword(), struct };
 
+        ApiHelper.addAuthorizationHeaderIfNeeded(blog, client);
+        
         Object result = null;
         try {
             result = client.call("wp.newCategory", params);

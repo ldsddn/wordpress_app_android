@@ -358,13 +358,14 @@ public class WordPress extends Application {
     /**
      * Checks for WordPress.com credentials
      *
-     * @return true if we have credentials or false if not
+     * @return true if we have credentials AND Token or false if not
      */
     public static boolean hasValidWPComCredentials(Context context) {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
         String username = settings.getString(WPCOM_USERNAME_PREFERENCE, null);
         String password = settings.getString(WPCOM_PASSWORD_PREFERENCE, null);
-        return username != null && password != null;
+        String token    = settings.getString(ACCESS_TOKEN_PREFERENCE, null);
+        return username != null && password != null && token != null;
     }
 
     public static boolean isSignedIn(Context context) {

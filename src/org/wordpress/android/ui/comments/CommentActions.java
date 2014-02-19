@@ -16,6 +16,8 @@ import org.wordpress.android.models.CommentStatus;
 import org.wordpress.android.models.Note;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.AppLog.T;
+
+import org.xmlrpc.android.ApiHelper;
 import org.xmlrpc.android.XMLRPCClient;
 import org.xmlrpc.android.XMLRPCException;
 
@@ -88,7 +90,9 @@ public class CommentActions {
                 commentHash.put("author", "");
                 commentHash.put("author_url", "");
                 commentHash.put("author_email", "");
-
+                
+                ApiHelper.addAuthorizationHeaderIfNeeded(blog, client);
+                
                 Object[] params = {
                         blog.getRemoteBlogId(),
                         blog.getUsername(),
@@ -158,7 +162,8 @@ public class CommentActions {
                         blog.getPassword(),
                         Integer.valueOf(comment.postID),
                         replyHash };
-
+                
+                ApiHelper.addAuthorizationHeaderIfNeeded(blog, client);
 
                 int newCommentID;
                 try {
@@ -264,6 +269,8 @@ public class CommentActions {
                         comment.commentID,
                         postHash};
 
+                ApiHelper.addAuthorizationHeaderIfNeeded(blog, client);
+                
                 Object result;
                 try {
                     result = client.call("wp.editComment", params);
@@ -324,7 +331,9 @@ public class CommentActions {
                         blog.getUrl(),
                         blog.getHttpuser(),
                         blog.getHttppassword());
-
+                
+                ApiHelper.addAuthorizationHeaderIfNeeded(blog, client);
+                
                 for (Comment comment: comments) {
                     Map<String, String> postHash = new HashMap<String, String>();
                     postHash.put("status", newStatusStr);
@@ -397,6 +406,8 @@ public class CommentActions {
                         blog.getPassword(),
                         comment.commentID };
 
+                ApiHelper.addAuthorizationHeaderIfNeeded(blog, client);
+                
                 Object result;
                 try {
                     result = client.call("wp.deleteComment", params);
@@ -449,6 +460,8 @@ public class CommentActions {
                         blog.getHttpuser(),
                         blog.getHttppassword());
 
+                ApiHelper.addAuthorizationHeaderIfNeeded(blog, client);
+                
                 for (Comment comment: comments) {
                     Object[] params = {
                             remoteBlogId,

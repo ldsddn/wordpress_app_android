@@ -513,6 +513,8 @@ public class PostsActivity extends WPActionBarActivity implements OnPostSelected
                     WordPress.currentBlog.getUsername(),
                     WordPress.currentBlog.getPassword(), post.getPostid() };
 
+            ApiHelper.addAuthorizationHeaderIfNeeded(WordPress.currentBlog, client);
+            
             try {
                 client.call((mIsPage) ? "wp.deletePage" : "blogger.deletePost",
                         (mIsPage) ? pageParams : postParams);
@@ -598,6 +600,8 @@ public class PostsActivity extends WPActionBarActivity implements OnPostSelected
                     WordPress.currentBlog.getHttpuser(),
                     WordPress.currentBlog.getHttppassword());
 
+            ApiHelper.addAuthorizationHeaderIfNeeded(WordPress.currentBlog, client);
+            
             Object versionResult = new Object();
             try {
                 if (mIsPage) {

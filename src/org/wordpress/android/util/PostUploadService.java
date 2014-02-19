@@ -386,6 +386,8 @@ public class PostUploadService extends Service {
             if (post.getQuickPostType() != null)
                 client.addQuickPostHeader(post.getQuickPostType());
 
+            ApiHelper.addAuthorizationHeaderIfNeeded(blog, client);
+            
             n.setLatestEventInfo(context, message, message, n.contentIntent);
             nm.notify(notificationID, n);
             if (post.getWP_password() != null) {
@@ -428,6 +430,8 @@ public class PostUploadService extends Service {
                 // Upload the video
                 XMLRPCClient client = new XMLRPCClient(blog.getUrl(), blog.getHttpuser(), blog.getHttppassword());
 
+                ApiHelper.addAuthorizationHeaderIfNeeded(blog, client);
+                
                 // create temp file for media upload
                 String tempFileName = "wp-" + System.currentTimeMillis();
                 try {
@@ -759,6 +763,8 @@ public class PostUploadService extends Service {
         private String uploadPicture(Map<String, Object> pictureParams, MediaFile mf, Blog blog) {
             XMLRPCClient client = new XMLRPCClient(blog.getUrl(), blog.getHttpuser(), blog.getHttppassword());
 
+            ApiHelper.addAuthorizationHeaderIfNeeded(blog, client);
+            
             // create temp file for media upload
             String tempFileName = "wp-" + System.currentTimeMillis();
             try {
