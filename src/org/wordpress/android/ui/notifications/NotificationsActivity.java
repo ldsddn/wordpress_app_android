@@ -1,5 +1,14 @@
 package org.wordpress.android.ui.notifications;
 
+import static org.wordpress.android.WordPress.restClient;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -24,6 +33,7 @@ import com.wordpress.rest.RestRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import org.wordpress.android.GCMIntentService;
 import org.wordpress.android.R;
 import org.wordpress.android.WordPress;
@@ -37,16 +47,6 @@ import org.wordpress.android.ui.reader.actions.ReaderAuthActions;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.AppLog.T;
 import org.wordpress.android.util.ToastUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.wordpress.android.WordPress.getContext;
-import static org.wordpress.android.WordPress.restClient;
 
 public class NotificationsActivity extends WPActionBarActivity implements CommentActions.OnCommentChangeListener {
     public static final String NOTIFICATION_ACTION = "org.wordpress.android.NOTIFICATION";
