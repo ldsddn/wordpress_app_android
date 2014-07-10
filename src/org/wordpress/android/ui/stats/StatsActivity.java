@@ -634,21 +634,8 @@ public class StatsActivity extends WPActionBarActivity {
         startService(intent);
     }
 
-    /**
-     * Return the remote blogId as stored on the wpcom backend.
-     * <p>
-     * blogId is always available for dotcom blogs. It could be null on Jetpack blogs
-     * with blogOptions still empty or when the option 'jetpack_client_id' is not available in blogOptions.
-     * </p>
-     * @return String  blogId or null
-     */
     String getBlogId() {
-        Blog currentBlog = WordPress.getCurrentBlog();
-        if (currentBlog.isDotcomFlag()) {
-            return String.valueOf(currentBlog.getRemoteBlogId());
-        } else {
-            return currentBlog.getApi_blogid();
-        }
+        return WordPress.getCurrentBlog().getDotComApi_blogid();
     }
 
     private void stopStatsService() {

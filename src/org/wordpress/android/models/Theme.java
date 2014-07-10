@@ -179,7 +179,7 @@ public class Theme {
 
         // if the theme is free, set the blogId to be empty
         // if the theme is not free, set the blogId to the current blog
-        String blogId = String.valueOf(WordPress.getCurrentBlog().getRemoteBlogId());
+        String blogId = WordPress.getCurrentBlog().getDotComApi_blogid();
 
         // build comma-separated list of features
         StringBuilder sbFeatures = new StringBuilder();

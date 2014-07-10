@@ -247,6 +247,22 @@ public class Blog {
         api_blogid = apiBlogid;
     }
 
+    /**
+     * Return the remote blogId as stored on the wpcom backend.
+     * <p>
+     * blogId is always available for dotcom blogs. It could be null on Jetpack blogs
+     * with blogOptions still empty or when the option 'jetpack_client_id' is not available in blogOptions.
+     * </p>
+     * @return String  blogId or null
+     */
+    public String getDotComApi_blogid() {
+        if (isDotcomFlag()) {
+            return String.valueOf(getRemoteBlogId());
+        } else {
+            return getApi_blogid();
+        }
+    }
+
     public boolean isDotcomFlag() {
         return dotcomFlag;
     }

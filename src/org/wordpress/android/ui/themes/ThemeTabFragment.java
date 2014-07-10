@@ -196,7 +196,7 @@ public class ThemeTabFragment extends Fragment implements OnItemClickListener, R
     }
 
     protected String getBlogId() {
-        return String.valueOf(WordPress.getCurrentBlog().getRemoteBlogId());
+        return WordPress.getCurrentBlog().getDotComApi_blogid();
     }
 
     @Override
