@@ -127,6 +127,9 @@ public class Theme {
 
     public void setLaunchDate(String launchDate) {
         this.launchDate = launchDate;
+        if (launchDate == null) {
+            return;
+        }
         try {
             Date date = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(launchDate);
             this.launchDateMs = date.getTime();
@@ -163,9 +166,9 @@ public class Theme {
         String screenshotURL = object.getString("screenshot") ;
         String name = object.getString("name");
         String description = object.getString("description");
-        int trendingRank = object.getInt("trending_rank");
-        int popularityRank = object.getInt("popularity_rank");
-        String launchDate = object.getString("launch_date");
+        int trendingRank = object.has("trending_rank") ? object.getInt("trendink_rank") : Integer.MAX_VALUE;
+        int popularityRank = object.has("popularity_rank") ? object.getInt("popularity_rank") : Integer.MAX_VALUE;
+        String launchDate = object.has("launch_date") ? object.getString("launch_date") : null;
         String previewURL = object.has("preview_url") ? object.getString("preview_url") : ""; // we don't receive preview_url when we fetch current theme
 
         // parse cost, e.g
@@ -174,8 +177,11 @@ public class Theme {
         //   "number": 80,
         //   "currency": "USD"
         // },
-        JSONObject costObject = object.getJSONObject("cost");
-        boolean isPremium = costObject.getInt("number") > 0;
+        boolean isPremium = false;
+        if (object.has("cost")) {
+            JSONObject costObject = object.getJSONObject("cost");
+            isPremium = costObject.getInt("number") > 0;
+        }
 
         // if the theme is free, set the blogId to be empty
         // if the theme is not free, set the blogId to the current blog

@@ -117,8 +117,8 @@ public class ThemeBrowserActivity extends WPActionBarActivity implements
     }
 
     private boolean areThemesAccessible() {
-        // themes are only accessible to admin wordpress.com users
-        if (WordPress.getCurrentBlog() != null && !WordPress.getCurrentBlog().isDotcomFlag()) {
+        // themes are only accessible to admin wordpress.com and Jetpack users
+        if (WordPress.getCurrentBlog() != null && !WordPress.getCurrentBlog().supportsThemes()) {
             Intent intent = new Intent(ThemeBrowserActivity.this, PostsActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             startActivityWithDelay(intent);
@@ -248,6 +248,7 @@ public class ThemeBrowserActivity extends WPActionBarActivity implements
                 }, new ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError response) {
+                        AppLog.e(T.THEMES, "Failed to get current theme: " + response.toString());
                     }
                 }
         );

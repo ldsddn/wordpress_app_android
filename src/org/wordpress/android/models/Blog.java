@@ -468,6 +468,10 @@ public class Blog {
         return !TextUtils.isEmpty(getHttppassword()) && !TextUtils.isEmpty(getHttpuser());
     }
 
+    public boolean supportsThemes() {
+        return isAdmin() && (isDotcomFlag() || isJetpackPowered());
+    }
+
     /**
      * Get the WordPress.com blog ID
      * Stored in blogId for WP.com, api_blogId for Jetpack

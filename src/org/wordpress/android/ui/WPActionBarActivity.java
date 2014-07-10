@@ -972,7 +972,8 @@ public abstract class WPActionBarActivity extends Activity {
 
         @Override
         public Boolean isVisible() {
-            if (WordPress.getCurrentBlog() != null && WordPress.getCurrentBlog().isAdmin() && WordPress.getCurrentBlog().isDotcomFlag())
+            Blog blog = WordPress.getCurrentBlog();
+            if (blog != null && blog.supportsThemes())
                 return true;
             return false;
         }
