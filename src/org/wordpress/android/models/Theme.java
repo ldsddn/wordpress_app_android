@@ -127,7 +127,7 @@ public class Theme {
 
     public void setLaunchDate(String launchDate) {
         this.launchDate = launchDate;
-        if (launchDate == null) {
+        if (launchDate == null || launchDate == "") {
             return;
         }
         try {
@@ -166,10 +166,10 @@ public class Theme {
         String screenshotURL = object.getString("screenshot") ;
         String name = object.getString("name");
         String description = object.getString("description");
-        int trendingRank = object.has("trending_rank") ? object.getInt("trendink_rank") : Integer.MAX_VALUE;
-        int popularityRank = object.has("popularity_rank") ? object.getInt("popularity_rank") : Integer.MAX_VALUE;
-        String launchDate = object.has("launch_date") ? object.getString("launch_date") : null;
-        String previewURL = object.has("preview_url") ? object.getString("preview_url") : ""; // we don't receive preview_url when we fetch current theme
+        int trendingRank = object.optInt("trending_rank");
+        int popularityRank = object.optInt("popularity_rank");
+        String launchDate = object.optString("launch_date");
+        String previewURL = object.optString("preview_url"); // we don't receive preview_url when we fetch current theme
 
         // parse cost, e.g
         // "cost": {
