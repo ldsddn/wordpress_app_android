@@ -6,4 +6,18 @@
   <artifactId>wordpress-utils</artifactId>
   <version>1.0.1</version>
   <packaging>aar</packaging>
+  <dependencies>
+    <dependency>
+      <groupId>com.mcxiaoke.volley</groupId>
+      <artifactId>library</artifactId>
+      <version>1.0.+</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
 </project>
