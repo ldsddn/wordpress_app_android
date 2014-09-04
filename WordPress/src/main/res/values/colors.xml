@@ -12,7 +12,7 @@
     <color name="image_options_label">@color/grey_medium_light</color>
     <color name="pressed_wordpress">#CC78DCFA</color>
     <color name="list_row_selected">@color/grey_light</color>
-    <color name="background_grey">@color/grey_extra_light</color>
+    <color name="background_grey">@color/grey_light</color>
 
     <!-- WordPress.com Design Handbook Colors -->
     <color name="blue_extra_light">#78DCFA</color>
