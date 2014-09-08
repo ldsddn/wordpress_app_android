@@ -79,6 +79,15 @@ public class GCMIntentService extends GCMBaseIntentService {
             }
         }
 
+        String noteType = extras.getString("type");
+        if (noteType != null && noteType.equals("badge-reset")) {
+            NotificationManager mNotificationManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.cancel(PUSH_NOTIFICATION_ID);
+            clearNotificationsMap();
+            return;
+        }
+
         String title = StringEscapeUtils.unescapeHtml(extras.getString("title"));
         if (title == null) {
             title = getString(R.string.app_name);
@@ -154,7 +163,6 @@ public class GCMIntentService extends GCMBaseIntentService {
             }
 
             // Add some actions if this is a comment notification
-            String noteType = extras.getString("type");
             if (noteType != null && noteType.equals("c")) {
                 Intent commentReplyIntent = new Intent(this, PostsActivity.class);
                 commentReplyIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK
