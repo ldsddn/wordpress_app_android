@@ -16,6 +16,9 @@
         <item name="android:actionModeCloseButtonStyle">@style/ActionButton.CloseMode.WordPress</item>
         <item name="android:actionBarTabTextStyle">@style/TabTextStyle.WordPress</item>
         <item name="android:actionBarTabBarStyle">@style/TabBarStyle.WordPress</item>
+        <item name="android:textSelectHandleLeft">@drawable/wordpress_text_select_handle_left</item>
+        <item name="android:textSelectHandleRight">@drawable/wordpress_text_select_handle_right</item>
+        <item name="android:textSelectHandle">@drawable/wordpress_text_select_handle_middle</item>
 
         <!-- Light.DarkActionBar specific -->
         <item name="android:actionBarWidgetTheme">@style/Theme.WordPress.Widget</item>
