@@ -21,6 +21,7 @@
             android:listSelector="@drawable/reader_list_selector"
             android:scrollingCache="true"
             android:textColor="@color/grey_medium_dark"
+            style="@style/WordPress.BorderedBackground"
             tools:listitem="@layout/comment_listitem"/>
     </uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout>
 

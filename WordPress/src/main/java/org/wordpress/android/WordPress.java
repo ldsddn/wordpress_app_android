@@ -40,8 +40,8 @@ import org.wordpress.android.networking.RestClientUtils;
 import org.wordpress.android.networking.SelfSignedSSLCertsManager;
 import org.wordpress.android.ui.ActivityId;
 import org.wordpress.android.ui.accounts.SetupBlogTask.GenericSetupBlogTask;
-import org.wordpress.android.ui.notifications.NotificationUtils;
-import org.wordpress.android.ui.notifications.SimperiumUtils;
+import org.wordpress.android.ui.notifications.utils.NotificationsUtils;
+import org.wordpress.android.ui.notifications.utils.SimperiumUtils;
 import org.wordpress.android.ui.prefs.AppPrefs;
 import org.wordpress.android.ui.stats.service.StatsService;
 import org.wordpress.android.util.ABTestingUtils;
@@ -57,6 +57,7 @@ import org.wordpress.android.util.RateLimitedTask;
 import org.wordpress.android.util.VolleyUtils;
 import org.wordpress.passcodelock.AbstractAppLock;
 import org.wordpress.passcodelock.AppLockManager;
+import org.xmlrpc.android.ApiHelper;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -92,10 +93,27 @@ public class WordPress extends Application {
     public static final String BROADCAST_ACTION_BLOG_LIST_CHANGED = "BLOG_LIST_CHANGED";
 
     private static final int SECONDS_BETWEEN_STATS_UPDATE = 30 * 60;
+    private static final int SECONDS_BETWEEN_OPTIONS_UPDATE = 10 * 60;
     private static final int SECONDS_BETWEEN_BLOGLIST_UPDATE = 6 * 60 * 60;
 
     private static Context mContext;
     private static BitmapLruCache mBitmapCache;
+
+
+    /**
+     *  Updates Options for the current blog in background.
+     */
+    public static RateLimitedTask sUpdateCurrentBlogOption = new RateLimitedTask(SECONDS_BETWEEN_OPTIONS_UPDATE) {
+        protected boolean run() {
+            Blog currentBlog = WordPress.getCurrentBlog();
+            if (currentBlog != null) {
+                new ApiHelper.RefreshBlogContentTask(mContext, currentBlog, null).executeOnExecutor(
+                        AsyncTask.THREAD_POOL_EXECUTOR, false);
+                return true;
+            }
+            return false;
+        }
+    };
 
     /**
      *  Updates the stats of the current blog in background. There is a timeout of 30 minutes that limits
@@ -326,7 +344,7 @@ public class WordPress extends Application {
         if (WordPress.hasValidWPComCredentials(context)) {
             if (!TextUtils.isEmpty(regId)) {
                 // Send the token to WP.com in case it was invalidated
-                NotificationUtils.registerDeviceForPushNotifications(context, regId);
+                NotificationsUtils.registerDeviceForPushNotifications(context, regId);
                 AppLog.v(T.NOTIFS, "Already registered for GCM");
             }
         }
@@ -512,7 +530,7 @@ public class WordPress extends Application {
         // a Volley request
         VolleyUtils.cancelAllRequests(requestQueue);
 
-        NotificationUtils.unregisterDevicePushNotifications(context);
+        NotificationsUtils.unregisterDevicePushNotifications(context);
         try {
             GCMRegistrar.checkDevice(context);
             GCMRegistrar.unregister(context);
@@ -607,7 +625,7 @@ public class WordPress extends Application {
     private class ApplicationLifecycleMonitor implements Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         private final int DEFAULT_TIMEOUT = 2 * 60; // 2 minutes
         private Date lastPingDate;
-
+        private Date mApplicationOpenedDate;
         boolean isInBackground = true;
 
         @Override
@@ -625,8 +643,13 @@ public class WordPress extends Application {
                 isInBackground = true;
                 String lastActivityString = AppPrefs.getLastActivityStr();
                 ActivityId lastActivity = ActivityId.getActivityIdFromName(lastActivityString);
-                Map<String, String> properties = new HashMap<String, String>();
+                Map<String, Object> properties = new HashMap<String, Object>();
                 properties.put("last_visible_screen", lastActivity.toString());
+                if (mApplicationOpenedDate != null) {
+                    Date now = new Date();
+                    properties.put("time_in_app", DateTimeUtils.secondsBetween(now, mApplicationOpenedDate));
+                    mApplicationOpenedDate = null;
+                }
                 AnalyticsTracker.track(AnalyticsTracker.Stat.APPLICATION_CLOSED, properties);
                 AnalyticsTracker.endSession(false);
             } else {
@@ -650,24 +673,6 @@ public class WordPress extends Application {
             if (evictBitmaps && mBitmapCache != null) {
                 mBitmapCache.evictAll();
             }
-        }
-
-        /**
-         * @return true if a network connection is available and the app come from background to foreground.
-         */
-        private boolean isNetworkAvailableAndComeFromBackground() {
-            // The app wasn't in background. No need to ping the backend again.
-            if (isInBackground == false) {
-                return false;
-            }
-
-            // The app moved from background -> foreground. Set this flag to false for security reason.
-            isInBackground = false;
-            if (!NetworkUtils.isNetworkAvailable(mContext)) {
-                return false;
-            }
-
-            return true;
         }
 
         private boolean isPushNotificationPingNeeded() {
@@ -702,7 +707,7 @@ public class WordPress extends Application {
                         AppLog.e(T.NOTIFS, "Could not ping the PNs backend, Token or gmcID not found");
                     } else {
                         // Send the token to WP.com
-                        NotificationUtils.registerDeviceForPushNotifications(mContext, token);
+                        NotificationsUtils.registerDeviceForPushNotifications(mContext, token);
                     }
                 } catch (Exception e) {
                     AppLog.e(T.NOTIFS, "Could not ping the PNs backend: " + e.getMessage());
@@ -717,6 +722,7 @@ public class WordPress extends Application {
          */
         public void onFromBackground() {
             AnalyticsTracker.beginSession();
+            mApplicationOpenedDate = new Date();
             AnalyticsTracker.track(AnalyticsTracker.Stat.APPLICATION_OPENED);
             if (NetworkUtils.isNetworkAvailable(mContext)) {
                 // Rate limited PN Token Update
@@ -727,6 +733,9 @@ public class WordPress extends Application {
 
                 // Rate limited WPCom blog list Update
                 sUpdateWordPressComBlogList.runIfNotLimited();
+
+                // Rate limited blog options Update
+                sUpdateCurrentBlogOption.runIfNotLimited();
             }
         }
 

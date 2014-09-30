@@ -23,9 +23,7 @@ import org.wordpress.android.R;
 import org.wordpress.android.analytics.AnalyticsTracker;
 import org.wordpress.android.datasets.ReaderPostTable;
 import org.wordpress.android.models.ReaderPost;
-import org.wordpress.android.models.ReaderPostList;
 import org.wordpress.android.models.ReaderTag;
-import org.wordpress.android.util.NetworkUtils;
 import org.wordpress.android.ui.reader.ReaderAnim.AnimationEndListener;
 import org.wordpress.android.ui.reader.ReaderAnim.Duration;
 import org.wordpress.android.ui.reader.ReaderPostPagerEndFragment.EndFragmentType;
@@ -38,8 +36,8 @@ import org.wordpress.android.ui.reader.actions.ReaderBlogActions.BlockedBlogResu
 import org.wordpress.android.ui.reader.actions.ReaderPostActions;
 import org.wordpress.android.ui.reader.models.ReaderBlogIdPostId;
 import org.wordpress.android.ui.reader.models.ReaderBlogIdPostIdList;
-import org.wordpress.android.ui.reader.utils.ReaderUtils;
 import org.wordpress.android.util.AppLog;
+import org.wordpress.android.util.NetworkUtils;
 import org.wordpress.android.util.ToastUtils;
 
 import javax.annotation.Nonnull;
@@ -50,7 +48,7 @@ import javax.annotation.Nonnull;
  * post detail
  */
 public class ReaderPostPagerActivity extends Activity
-        implements ReaderUtils.FullScreenListener,
+        implements ReaderInterfaces.FullScreenListener,
                    ReaderInterfaces.OnPostPopupListener {
 
     private ViewPager mViewPager;
@@ -210,9 +208,6 @@ public class ReaderPostPagerActivity extends Activity
         if (fragment != null && fragment.isCustomViewShowing()) {
             // if fullscreen video is showing, hide the custom view rather than navigate back
             fragment.hideCustomView();
-        } else if (fragment != null && fragment.isAddCommentBoxShowing()) {
-            // if comment reply entry is showing, hide it rather than navigate back
-            fragment.hideAddCommentBox();
         } else {
             super.onBackPressed();
             if (isFullScreenSupported()) {
@@ -222,9 +217,9 @@ public class ReaderPostPagerActivity extends Activity
     }
 
     /*
-     * loads the posts used to populate the pager adapter - passed blogId/postId will be made
-     * active after loading unless gotoNext=true, in which case the post after the passed one
-     * will be made active
+     * loads the blogId/postId pairs used to populate the pager adapter - passed blogId/postId will
+     * be made active after loading unless gotoNext=true, in which case the post after the passed
+     * one will be made active
      */
     private void loadPosts(final long blogId,
                            final long postId,
@@ -232,43 +227,38 @@ public class ReaderPostPagerActivity extends Activity
         new Thread() {
             @Override
             public void run() {
-                final ReaderPostList postList;
+                final ReaderBlogIdPostIdList idList;
                 if (mIsSinglePostView) {
-                    ReaderPost post = ReaderPostTable.getPost(blogId, postId);
-                    if (post == null) {
-                        return;
-                    }
-                    postList = new ReaderPostList();
-                    postList.add(post);
+                    idList = new ReaderBlogIdPostIdList();
+                    idList.add(new ReaderBlogIdPostId(blogId, postId));
                 } else {
                     int maxPosts = ReaderConstants.READER_MAX_POSTS_TO_DISPLAY;
                     switch (getPostListType()) {
                         case TAG_FOLLOWED:
                         case TAG_PREVIEW:
-                            postList = ReaderPostTable.getPostsWithTag(getCurrentTag(), maxPosts);
+                            idList = ReaderPostTable.getBlogIdPostIdsWithTag(getCurrentTag(), maxPosts);
                             break;
                         case BLOG_PREVIEW:
-                            postList = ReaderPostTable.getPostsInBlog(blogId, maxPosts);
+                            idList = ReaderPostTable.getBlogIdPostIdsInBlog(blogId, maxPosts);
                             break;
                         default:
                             return;
                     }
                 }
 
-                final ReaderBlogIdPostIdList ids = postList.getBlogIdPostIdList();
                 final int currentPosition = mViewPager.getCurrentItem();
                 final int newPosition;
                 if (gotoNext) {
-                    newPosition = ids.indexOf(blogId, postId) + 1;
+                    newPosition = idList.indexOf(blogId, postId) + 1;
                 } else {
-                    newPosition = ids.indexOf(blogId, postId);
+                    newPosition = idList.indexOf(blogId, postId);
                 }
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         mPagerAdapter = new PostPagerAdapter(getFragmentManager());
-                        mPagerAdapter.showPosts(ids);
+                        mPagerAdapter.showPosts(idList);
                         mViewPager.setAdapter(mPagerAdapter);
                         if (mPagerAdapter.isValidPosition(newPosition)) {
                             mViewPager.setCurrentItem(newPosition);
