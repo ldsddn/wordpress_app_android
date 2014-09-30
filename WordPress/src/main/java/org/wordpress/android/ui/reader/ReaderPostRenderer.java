@@ -247,7 +247,8 @@ class ReaderPostRenderer {
         .append("<link rel='stylesheet' type='text/css' href='http://fonts.googleapis.com/css?family=Open+Sans' />")
 
         .append("<style type='text/css'>")
-        .append("  body { font-family: 'Open Sans', sans-serif; margin: 0px; padding: 0px;}")
+        .append("  body { font-family: 'Open Sans', sans-serif; margin: 0px; padding: 0px;")
+        .append("  color: ").append(mResourceVars.greyDarkStr).append(";}")
         .append("  body, p, div { max-width: 100% !important; word-wrap: break-word; }")
         .append("  p, div { line-height: 1.6em; font-size: 1em; }")
         .append("  h1, h2 { line-height: 1.2em; }")

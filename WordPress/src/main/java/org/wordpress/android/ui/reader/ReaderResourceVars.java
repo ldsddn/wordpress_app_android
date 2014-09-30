@@ -32,6 +32,7 @@ class ReaderResourceVars {
     final int mediumAnimTime;
 
     final String linkColorStr;
+    final String greyDarkStr;
     final String greyMediumDarkStr;
     final String greyLightStr;
     final String greyExtraLightStr;
@@ -57,6 +58,7 @@ class ReaderResourceVars {
         greyMediumDarkStr = HtmlUtils.colorResToHtmlColor(context, R.color.grey_medium_dark);
         greyLightStr = HtmlUtils.colorResToHtmlColor(context, R.color.grey_light);
         greyExtraLightStr = HtmlUtils.colorResToHtmlColor(context, R.color.grey_extra_light);
+        greyDarkStr = HtmlUtils.colorResToHtmlColor(context, R.color.grey_dark);
 
         // full-size image width must take list margin and padding into account
         int listPadding = resources.getDimensionPixelOffset(R.dimen.margin_large);
