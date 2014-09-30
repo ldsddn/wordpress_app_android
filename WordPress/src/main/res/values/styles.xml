@@ -6,7 +6,9 @@
 
         <item name="android:actionBarItemBackground">@drawable/selectable_background_wordpress</item>
         <item name="android:popupMenuStyle">@style/PopupMenu.WordPress</item>
-        <item name="android:dropDownListViewStyle">@style/DropDownListView.Dark.WordPress</item>
+        <item name="android:dropDownListViewStyle">@style/DropDownListView.WordPress</item>
+        <item name="android:dropDownItemStyle">@style/DropDownItemStyle.WordPress</item>
+
         <item name="android:actionBarTabStyle">@style/ActionBarTabStyle.WordPress</item>
         <item name="android:actionDropDownStyle">@style/DropDownNav.WordPress</item>
         <item name="android:actionBarStyle">@style/ActionBar.Solid.WordPress</item>
@@ -15,18 +17,18 @@
         <item name="android:actionModeCloseButtonStyle">@style/ActionButton.CloseMode.WordPress</item>
         <item name="android:actionBarTabTextStyle">@style/TabTextStyle.WordPress</item>
         <item name="android:actionBarTabBarStyle">@style/TabBarStyle.WordPress</item>
+
         <item name="android:textSelectHandleLeft">@drawable/wordpress_text_select_handle_left</item>
         <item name="android:textSelectHandleRight">@drawable/wordpress_text_select_handle_right</item>
         <item name="android:textSelectHandle">@drawable/wordpress_text_select_handle_middle</item>
+
+        <item name="android:spinnerDropDownItemStyle">@style/DropDownItem.WordPress</item>
+        <item name="android:spinnerItemStyle">@style/SpinnerItem.WordPress</item>
 
         <!-- Light.DarkActionBar specific -->
         <item name="android:actionBarWidgetTheme">@style/Theme.WordPress.Widget</item>
 
         <item name="menuDrawerStyle">@style/MenuDrawer</item>
-    </style>
-
-    <style name="WordPress.DropDownListView.Light" parent="WordPress">
-        <item name="android:dropDownListViewStyle">@style/DropDownListView.Light.WordPress</item>
     </style>
 
     <style name="ActionBar.Solid.WordPress" parent="android:Widget.Holo.Light.ActionBar.Solid.Inverse">
@@ -43,9 +45,9 @@
     </style>
 
     <!-- this style is only referenced in a Light.DarkActionBar based theme -->
-    <style name="Theme.WordPress.Widget" parent="android:Theme.Holo">
+    <style name="Theme.WordPress.Widget" parent="android:Theme.Holo.Light.DarkActionBar">
         <item name="android:popupMenuStyle">@style/PopupMenu.WordPress</item>
-        <item name="android:dropDownListViewStyle">@style/DropDownListView.Light.WordPress</item>
+        <item name="android:dropDownListViewStyle">@style/DropDownListView.WordPress</item>
     </style>
 
     <style name="TabBarStyle.WordPress" parent="@android:style/Widget.Holo.ActionBar.TabBar">
@@ -60,17 +62,26 @@
 
    <style name="PopupMenu.WordPress" parent="android:Widget.Holo.ListPopupWindow">
         <item name="android:popupBackground">@drawable/menu_dropdown_panel_wordpress</item>
+        <item name="android:textAppearance">@style/Calypso.TextAppearance</item>
     </style>
 
-    <style name="DropDownListView.Dark.WordPress" parent="android:Widget.Holo.ListView.DropDown">
+    <style name="DropDownListView.WordPress" parent="android:Widget.Holo.ListView.DropDown">
         <item name="android:listSelector">@drawable/selectable_background_wordpress</item>
         <item name="android:fadeScrollbars">false</item>
-        <item name="android:scrollbarThumbVertical">@drawable/scrollbar_transparent_white</item>
+        <item name="android:divider">@drawable/notifications_list_divider_full_width</item>
+        <item name="android:dividerHeight">1dp</item>
     </style>
 
-    <style name="DropDownListView.Light.WordPress" parent="android:Widget.Holo.ListView.DropDown">
-        <item name="android:listSelector">@drawable/selectable_background_wordpress</item>
-        <item name="android:fadeScrollbars">false</item>
+    <style name="DropDownItemStyle.WordPress" parent="android:Widget.Holo.DropDownItem">
+        <item name="android:textAppearance">@style/Calypso.TextAppearance</item>
+    </style>
+
+    <style name="DropDownItem.WordPress" parent="@android:style/Widget.Holo.Light.DropDownItem.Spinner">
+        <item name="android:textAppearance">@style/Calypso.TextAppearance</item>
+    </style>
+
+    <style name="SpinnerItem.WordPress" parent="@android:style/Widget.Holo.TextView.SpinnerItem">
+        <item name="android:textAppearance">@style/TextAppearance.Widget.DropDownItem.WordPress</item>
     </style>
 
     <style name="ActionBarTabStyle.WordPress" parent="android:Widget.Holo.ActionBar.TabView">
@@ -78,6 +89,10 @@
     </style>
 
     <style name="TabTextStyle.WordPress" parent="android:Widget.Holo.ActionBar.TabText">
+        <item name="android:textColor">@color/grey_dark</item>
+    </style>
+
+    <style name="TextAppearance.Widget.DropDownItem.WordPress" parent="android:TextAppearance.Holo.Widget.DropDownItem">
         <item name="android:textColor">@color/grey_dark</item>
     </style>
 

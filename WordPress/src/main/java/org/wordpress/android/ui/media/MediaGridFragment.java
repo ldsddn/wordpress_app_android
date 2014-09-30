@@ -262,7 +262,8 @@ public class MediaGridFragment extends Fragment implements OnItemClickListener,
                 context = getActivity().getActionBar().getThemedContext();
             }
         }
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, R.layout.spinner_menu_dropdown_item, mFiltersText);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, R.layout.spinner_menu_selected_item, mFiltersText);
+        adapter.setDropDownViewResource(R.layout.spinner_menu_dropdown_item);
         mSpinner.setAdapter(adapter);
         mSpinner.setSelection(mFilter.ordinal());
     }

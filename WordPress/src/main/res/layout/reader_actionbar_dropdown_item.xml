@@ -19,7 +19,6 @@
         android:maxWidth="175dp"
         android:paddingBottom="@dimen/margin_medium"
         android:paddingTop="@dimen/margin_medium"
-        android:textColor="@color/reader_actionbar_text"
         tools:text="text_name" />
 
 </LinearLayout>

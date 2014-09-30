@@ -401,17 +401,26 @@ public abstract class WPActionBarActivity extends Activity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            final View view;
             if (convertView == null) {
-                view = mInflater.inflate(R.layout.spinner_menu_dropdown_item, parent, false);
-            } else {
-                view = convertView;
+                convertView = mInflater.inflate(R.layout.spinner_menu_selected_item, parent, false);
             }
 
-            final TextView text = (TextView) view.findViewById(R.id.menu_text_dropdown);
+            final TextView text = (TextView) convertView.findViewById(R.id.menu_spinner_selected);
             text.setText((String)getItem(position));
 
-            return view;
+            return convertView;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = mInflater.inflate(R.layout.spinner_menu_dropdown_item, parent, false);
+            }
+
+            final TextView text = (TextView) convertView.findViewById(R.id.menu_spinner_dropdown);
+            text.setText((String)getItem(position));
+
+            return convertView;
         }
     }
 

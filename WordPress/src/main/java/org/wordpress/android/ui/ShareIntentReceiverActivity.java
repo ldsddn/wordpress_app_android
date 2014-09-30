@@ -78,7 +78,7 @@ public class ShareIntentReceiverActivity extends Activity implements OnItemSelec
             mBlogSpinnerTitle.setVisibility(View.GONE);
         } else {
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                    R.layout.spinner_menu_dropdown_item, blogNames);
+                    R.layout.spinner_menu_selected_item, blogNames);
             mBlogSpinner.setAdapter(adapter);
             mBlogSpinner.setOnItemSelectedListener(this);
         }
@@ -96,7 +96,7 @@ public class ShareIntentReceiverActivity extends Activity implements OnItemSelec
             String[] actions = new String[]{getString(R.string.share_action_post), getString(
                     R.string.share_action_media)};
             ArrayAdapter<String> actionAdapter = new ArrayAdapter<String>(this,
-                    R.layout.spinner_menu_dropdown_item, actions);
+                    R.layout.spinner_menu_selected_item, actions);
             mActionSpinner.setAdapter(actionAdapter);
             mActionSpinner.setOnItemSelectedListener(this);
         }
