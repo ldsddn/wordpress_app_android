@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.wordpress</groupId>
+  <artifactId>androidasync</artifactId>
+  <versioning>
+    <versions>
+      <version>1.3.9-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20141024123857</lastUpdated>
+  </versioning>
+</metadata>
