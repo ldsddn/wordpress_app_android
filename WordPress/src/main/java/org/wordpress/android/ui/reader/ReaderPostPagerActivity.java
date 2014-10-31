@@ -154,8 +154,8 @@ public class ReaderPostPagerActivity extends Activity
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         if (!hasPagerAdapter()) {
             loadPosts(mBlogId, mPostId, false);
         }
@@ -262,6 +262,7 @@ public class ReaderPostPagerActivity extends Activity
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        AppLog.d(AppLog.T.READER, "reader pager > creating adapter");
                         PostPagerAdapter adapter = new PostPagerAdapter(getFragmentManager(), idList);
                         mViewPager.setAdapter(adapter);
                         if (adapter.isValidPosition(newPosition)) {
@@ -482,8 +483,14 @@ public class ReaderPostPagerActivity extends Activity
 
         @Override
         public void restoreState(Parcelable state, ClassLoader loader) {
-            AppLog.i(AppLog.T.READER, "reader pager > adapter restoreState");
+            AppLog.d(AppLog.T.READER, "reader pager > adapter restoreState");
             super.restoreState(state, loader);
+        }
+
+        @Override
+        public Parcelable saveState() {
+            AppLog.d(AppLog.T.READER, "reader pager > adapter saveState");
+            return super.saveState();
         }
 
         private boolean hasEndFragment() {
