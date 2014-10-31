@@ -483,6 +483,8 @@ public class ReaderPostPagerActivity extends Activity
 
         @Override
         public void restoreState(Parcelable state, ClassLoader loader) {
+            // work around https://code.google.com/p/android/issues/detail?id=42601
+            // by catching the IllegalStateException
             try {
                 AppLog.d(AppLog.T.READER, "reader pager > adapter restoreState");
                 super.restoreState(state, loader);
