@@ -475,8 +475,9 @@ public class ReaderPostPagerActivity extends Activity
             mIdList = (ReaderBlogIdPostIdList)ids.clone();
             // add a bogus entry to the end of the list which tells the adapter to show
             // the end fragment after the last post
-            if (!mIsSinglePostView && !hasEndFragment()) {
-                mIdList.add(new ReaderBlogIdPostId(ReaderPostPagerEndFragment.END_FRAGMENT_ID,
+            if (!mIsSinglePostView) {
+                mIdList.add(new ReaderBlogIdPostId(
+                        ReaderPostPagerEndFragment.END_FRAGMENT_ID,
                         ReaderPostPagerEndFragment.END_FRAGMENT_ID));
             }
         }
@@ -485,7 +486,8 @@ public class ReaderPostPagerActivity extends Activity
         public void restoreState(Parcelable state, ClassLoader loader) {
             // work around "Fragement no longer exists for key" Android bug
             // by catching the IllegalStateException
-            //  https://code.google.com/p/android/issues/detail?id=42601
+            // https://code.google.com/p/android/issues/detail?id=42601
+            // http://stackoverflow.com/questions/17935224/fragement-no-longer-exists-for-key-f0-index-1
             try {
                 AppLog.d(AppLog.T.READER, "reader pager > adapter restoreState");
                 super.restoreState(state, loader);
@@ -498,12 +500,6 @@ public class ReaderPostPagerActivity extends Activity
         public Parcelable saveState() {
             AppLog.d(AppLog.T.READER, "reader pager > adapter saveState");
             return super.saveState();
-        }
-
-        private boolean hasEndFragment() {
-            return (mIdList.indexOf(
-                        ReaderPostPagerEndFragment.END_FRAGMENT_ID,
-                        ReaderPostPagerEndFragment.END_FRAGMENT_ID) > -1);
         }
 
         private boolean canRequestMostPosts() {
