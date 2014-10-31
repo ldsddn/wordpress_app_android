@@ -154,8 +154,8 @@ public class ReaderPostPagerActivity extends Activity
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
         if (!hasPagerAdapter()) {
             loadPosts(mBlogId, mPostId, false);
         }
@@ -483,8 +483,12 @@ public class ReaderPostPagerActivity extends Activity
 
         @Override
         public void restoreState(Parcelable state, ClassLoader loader) {
-            AppLog.d(AppLog.T.READER, "reader pager > adapter restoreState");
-            super.restoreState(state, loader);
+            try {
+                AppLog.d(AppLog.T.READER, "reader pager > adapter restoreState");
+                super.restoreState(state, loader);
+            } catch (IllegalStateException e) {
+                AppLog.e(AppLog.T.READER, e);
+            }
         }
 
         @Override
