@@ -494,10 +494,8 @@ public class ReaderPostPagerActivity extends Activity
 
         @Override
         public Fragment getItem(int position) {
-            if (position == getCount() - 1
-                    && hasPagerAdapter()
-                    && getPagerAdapter().canRequestMostPosts()) {
-                getPagerAdapter().requestMorePosts();
+            if ((position == getCount() - 1) && canRequestMostPosts()) {
+                requestMorePosts();
             }
 
             boolean disableBlockBlog = mIsSinglePostView;
