@@ -20,7 +20,9 @@
         android:layout_height="wrap_content"
         android:layout_alignTop="@id/user_avatar"
         android:layout_marginLeft="@dimen/notifications_adjusted_font_margin"
-        android:layout_toRightOf="@id/user_avatar">
+        android:layout_marginStart="@dimen/notifications_adjusted_font_margin"
+        android:layout_toRightOf="@id/user_avatar"
+        android:layout_toEndOf="@id/user_avatar">
 
         <org.wordpress.android.widgets.WPTextView
             android:id="@+id/user_name"
