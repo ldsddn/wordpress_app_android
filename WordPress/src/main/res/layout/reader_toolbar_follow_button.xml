@@ -12,5 +12,5 @@
 
     <org.wordpress.android.widgets.WPTextView
         android:id="@+id/text_follow"
-        style="@style/ReaderTextView.Follow" />
+        style="@style/ReaderTextView.Follow.Toolbar" />
 </FrameLayout>
