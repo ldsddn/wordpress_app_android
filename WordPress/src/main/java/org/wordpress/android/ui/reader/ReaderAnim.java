@@ -14,10 +14,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import org.wordpress.android.R;
-import org.wordpress.android.ui.reader.utils.ReaderUtils;
 
 public class ReaderAnim {
 
@@ -221,36 +219,6 @@ public class ReaderAnim {
 
         long durationMillis = Duration.SHORT.toMillis(target.getContext());
         set.setDuration(durationMillis);
-        set.setInterpolator(new AccelerateDecelerateInterpolator());
-
-        set.start();
-    }
-
-    /*
-     * animation when user taps a follow button
-     */
-    public static void animateFollowButton(final TextView txtFollow,
-                                           final boolean isAskingToFollow) {
-        if (txtFollow == null) {
-            return;
-        }
-
-        ObjectAnimator animX = ObjectAnimator.ofFloat(txtFollow, View.SCALE_X, 1f, 0f);
-        animX.setRepeatMode(ValueAnimator.REVERSE);
-        animX.setRepeatCount(1);
-
-        // change the button text and selection state before scaling back in
-        animX.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-                ReaderUtils.showFollowStatus(txtFollow, isAskingToFollow);
-            }
-        });
-
-        long durationMillis = Duration.SHORT.toMillis(txtFollow.getContext());
-        AnimatorSet set = new AnimatorSet();
-        set.play(animX);
-        set.setDuration(durationMillis / 2);
         set.setInterpolator(new AccelerateDecelerateInterpolator());
 
         set.start();
