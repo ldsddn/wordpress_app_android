@@ -235,13 +235,9 @@ public class ReaderAnim {
             return;
         }
 
-        ObjectAnimator animX = ObjectAnimator.ofFloat(txtFollow, View.SCALE_X, 1f, 0.75f);
+        ObjectAnimator animX = ObjectAnimator.ofFloat(txtFollow, View.SCALE_X, 1f, 0f);
         animX.setRepeatMode(ValueAnimator.REVERSE);
         animX.setRepeatCount(1);
-
-        ObjectAnimator animY = ObjectAnimator.ofFloat(txtFollow, View.SCALE_Y, 1f, 0.75f);
-        animY.setRepeatMode(ValueAnimator.REVERSE);
-        animY.setRepeatCount(1);
 
         // change the button text and selection state before scaling back in
         animX.addListener(new AnimatorListenerAdapter() {
@@ -251,9 +247,9 @@ public class ReaderAnim {
             }
         });
 
-        long durationMillis = Duration.SHORT.toMillis(txtFollow.getContext());
+        long durationMillis = Duration.MEDIUM.toMillis(txtFollow.getContext());
         AnimatorSet set = new AnimatorSet();
-        set.play(animX).with(animY);
+        set.play(animX);
         set.setDuration(durationMillis / 2);
         set.setInterpolator(new AccelerateDecelerateInterpolator());
 
