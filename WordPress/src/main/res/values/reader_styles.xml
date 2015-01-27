@@ -110,18 +110,15 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">@dimen/text_sz_small</item>
-        <item name="android:minWidth">90dp</item>
         <item name="android:gravity">center</item>
-        <item name="android:background">@drawable/reader_button_follow</item>
         <item name="android:textColor">@color/reader_follow_text</item>
         <item name="android:paddingTop">@dimen/margin_small</item>
         <item name="android:paddingBottom">@dimen/margin_small</item>
         <item name="android:text">@string/reader_btn_follow</item>
+        <item name="android:textAllCaps">true</item>
     </style>
     <style name="ReaderTextView.Follow.Toolbar" parent="ReaderTextView.Follow">
-        <item name="android:background">@drawable/reader_toolbar_follow</item>
         <item name="android:textColor">@color/reader_follow_text_toolbar</item>
-        <item name="android:textAllCaps">true</item>
     </style>
 
     <!-- EditTexts -->
