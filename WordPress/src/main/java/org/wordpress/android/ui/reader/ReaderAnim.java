@@ -247,7 +247,7 @@ public class ReaderAnim {
             }
         });
 
-        long durationMillis = Duration.MEDIUM.toMillis(txtFollow.getContext());
+        long durationMillis = Duration.SHORT.toMillis(txtFollow.getContext());
         AnimatorSet set = new AnimatorSet();
         set.play(animX);
         set.setDuration(durationMillis / 2);

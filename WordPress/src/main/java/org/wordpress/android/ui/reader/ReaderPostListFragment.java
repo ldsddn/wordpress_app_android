@@ -435,7 +435,7 @@ public class ReaderPostListFragment extends Fragment {
         }
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View followView = inflater.inflate(R.layout.reader_toolbar_follow_button, toolbar, false);
+        View followView = inflater.inflate(R.layout.reader_follow_button_toolbar, toolbar, false);
         mFollowButton = (TextView) followView.findViewById(R.id.text_follow);
         toolbar.addView(followView);
 
