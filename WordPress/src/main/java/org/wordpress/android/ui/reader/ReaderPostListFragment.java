@@ -15,6 +15,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -434,9 +435,22 @@ public class ReaderPostListFragment extends Fragment {
             return;
         }
 
-        mFollowButton = new ReaderFollowButton(toolbar.getContext());
-        toolbar.addView(mFollowButton);
+        Context context = toolbar.getContext();
+        int paddingRight = context.getResources().getDimensionPixelSize(R.dimen.reader_card_content_padding);
+        int marginRight = context.getResources().getDimensionPixelSize(R.dimen.reader_card_spacing);
 
+        mFollowButton = new ReaderFollowButton(context);
+        mFollowButton.setIsInverse(true);
+        mFollowButton.setPadding(0, 0, paddingRight, 0);
+
+        Toolbar.LayoutParams params =
+                new Toolbar.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                                             ViewGroup.LayoutParams.WRAP_CONTENT,
+                                             Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+        params.setMargins(0, 0, marginRight, 0);
+        mFollowButton.setLayoutParams(params);
+
+        toolbar.addView(mFollowButton);
         updateFollowButton();
 
         mFollowButton.setOnClickListener(new View.OnClickListener() {

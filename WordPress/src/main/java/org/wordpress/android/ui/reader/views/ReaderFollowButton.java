@@ -10,36 +10,52 @@ import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.widget.LinearLayout;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import org.wordpress.android.R;
 
-public class ReaderFollowButton extends LinearLayout {
+/**
+ * Follow button used throughout the reader
+ */
+public class ReaderFollowButton extends FrameLayout {
     private TextView mTextFollow;
     private boolean mIsFollowed;
 
     public ReaderFollowButton(Context context){
         super(context);
-        initView(context, null);
+        initView(context);
     }
 
     public ReaderFollowButton(Context context, AttributeSet attrs) {
         super(context, attrs);
-        initView(context, attrs);
+        initView(context);
     }
 
     public ReaderFollowButton(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        initView(context, attrs);
+        initView(context);
     }
 
-    private void initView(Context context, AttributeSet attrs) {
+    private void initView(Context context) {
         inflate(context, R.layout.reader_follow_button, this);
-        mTextFollow = (TextView) findViewById(R.id.text_follow);
+        mTextFollow = (TextView) findViewById(R.id.text_follow_button);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mTextFollow.setBackgroundResource(R.drawable.ripple_oval);
+            mTextFollow.setBackgroundResource(R.drawable.ripple_rect);
         }
+    }
+
+    /*
+     * inverse is used when follow button is shown in toolbar
+     */
+    public void setIsInverse(boolean isInverse) {
+        int color;
+        if (isInverse) {
+            color = getContext().getResources().getColor(R.color.reader_follow_text_inverse);
+        } else {
+            color = getContext().getResources().getColor(R.color.reader_follow_text);
+        }
+        mTextFollow.setTextColor(color);
     }
 
     private void updateFollowText() {
@@ -48,7 +64,7 @@ public class ReaderFollowButton extends LinearLayout {
     }
 
     public void setIsFollowed(boolean isFollowed, boolean animateChanges) {
-        if (isFollowed == mIsFollowed) {
+        if (isFollowed == mIsFollowed && mTextFollow.isSelected() == isFollowed) {
             return;
         }
 
