@@ -10,7 +10,7 @@ import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.wordpress.android.R;
@@ -18,7 +18,7 @@ import org.wordpress.android.R;
 /**
  * Follow button used throughout the reader
  */
-public class ReaderFollowButton extends FrameLayout {
+public class ReaderFollowButton extends LinearLayout {
     private TextView mTextFollow;
     private boolean mIsFollowed;
 
@@ -75,7 +75,6 @@ public class ReaderFollowButton extends FrameLayout {
             anim.setRepeatMode(ValueAnimator.REVERSE);
             anim.setRepeatCount(1);
 
-            // change the button text and selection state before scaling back in
             anim.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationRepeat(Animator animation) {
@@ -85,7 +84,7 @@ public class ReaderFollowButton extends FrameLayout {
 
             AnimatorSet set = new AnimatorSet();
             set.play(anim);
-            set.setDuration(250);
+            set.setDuration(200);
             set.setInterpolator(new AccelerateDecelerateInterpolator());
 
             set.start();
