@@ -436,12 +436,13 @@ public class ReaderPostListFragment extends Fragment {
         }
 
         Context context = toolbar.getContext();
+        int padding = context.getResources().getDimensionPixelSize(R.dimen.margin_small);
         int paddingRight = context.getResources().getDimensionPixelSize(R.dimen.reader_card_content_padding);
         int marginRight = context.getResources().getDimensionPixelSize(R.dimen.reader_card_spacing);
 
         mFollowButton = new ReaderFollowButton(context);
         mFollowButton.setIsInverse(true);
-        mFollowButton.setPadding(0, 0, paddingRight, 0);
+        mFollowButton.setPadding(padding, padding, paddingRight, padding);
 
         Toolbar.LayoutParams params =
                 new Toolbar.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,

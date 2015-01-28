@@ -41,7 +41,7 @@ public class ReaderFollowButton extends LinearLayout {
         inflate(context, R.layout.reader_follow_button, this);
         mTextFollow = (TextView) findViewById(R.id.text_follow_button);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mTextFollow.setBackgroundResource(R.drawable.ripple_rect);
+            setBackgroundResource(R.drawable.ripple_rect);
         }
     }
 
@@ -89,7 +89,6 @@ public class ReaderFollowButton extends LinearLayout {
 
             set.start();
         } else {
-            setSelected(isFollowed);
             updateFollowText();
         }
     }
