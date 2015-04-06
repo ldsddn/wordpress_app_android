@@ -13,16 +13,12 @@ android:
   components:
     - build-tools-21.1.2
     - android-21
-    - extra-android-support
 
 env:
   global:
     - GRADLE_OPTS="-XX:MaxPermSize=4g -Xmx4g"
     - ANDROID_SDKS=android-14
     - ANDROID_TARGET=android-14
-
-before_install:
-  - echo yes | android update sdk --filter extra-android-support --no-ui --force > /dev/null
 
 install:
   # Setup gradle.properties
