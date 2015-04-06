@@ -21,12 +21,12 @@ env:
     - ANDROID_SDKS=android-14
     - ANDROID_TARGET=android-14
 
+before_install:
+  - echo yes | android update sdk --filter extra-android-support --no-ui --force > /dev/null
+
 install:
   # Setup gradle.properties
   - cp WordPress/gradle.properties-example WordPress/gradle.properties
-
-before_script:
-  - echo yes | android update sdk --filter extra-android-support --no-ui --force > /dev/null
 
 script:
   - ./gradlew -PdisablePreDex build
