@@ -7,6 +7,12 @@
     android:background="@color/white"
     android:orientation="vertical">
 
+    <View
+        android:id="@+id/comment_actions_top_border"
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/notifications_list_divider" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

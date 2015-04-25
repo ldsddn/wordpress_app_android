@@ -260,6 +260,7 @@ public class NotificationsUtils {
                 if (NoteBlockRangeType.fromString(rangeObject.optString("type")) == NoteBlockRangeType.NOTICON) {
                     if (shouldAddNoticons) {
                         noticonRange = rangeObject;
+                        shouldLink = false;
                     }
 
                     continue;
