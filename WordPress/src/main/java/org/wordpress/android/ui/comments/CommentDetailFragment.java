@@ -966,12 +966,6 @@ public class CommentDetailFragment extends Fragment implements NotificationFragm
         // Now we'll add a detail fragment list
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-        // Hide the border is this comment has a noticon to prevent double borders
-        if (TextUtils.isEmpty(mNote.getCommentSubjectNoticon())) {
-            mLayoutButtons.findViewById(R.id.comment_actions_top_border).setVisibility(View.GONE);
-        }
-
         mNotificationsDetailListFragment = NotificationsDetailListFragment.newInstance(note.getId());
         mNotificationsDetailListFragment.setFooterView(mLayoutButtons);
         // Listen for note changes from the detail list fragment, so we can update the status buttons

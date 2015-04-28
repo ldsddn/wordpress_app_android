@@ -170,7 +170,7 @@ public class Note extends Syncable {
         return "";
     }
 
-    public String getCommentSubjectNoticon() {
+    private String getCommentSubjectNoticon() {
         JSONArray subjectRanges = queryJSON("subject[0].ranges", new JSONArray());
         if (subjectRanges != null) {
             for (int i=0; i < subjectRanges.length(); i++) {
